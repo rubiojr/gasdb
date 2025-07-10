@@ -653,7 +653,12 @@ func (s *Storage) UpdateDBAll(ctx context.Context) error {
 		return fmt.Errorf("error marshaling JSON: %w", err)
 	}
 
-	return s.SavePrices(ctx, time.Now(), jsonData)
+	if err := s.SavePrices(ctx, endDate.AddDate(0, 0, 1), jsonData); err != nil {
+		return fmt.Errorf("error saving data for today: %w", err)
+	}
+
+	log.Printf("Successfully saved data for today")
+	return nil
 }
 
 func (s *Storage) CreateLocationLogsTable(ctx context.Context) error {
@@ -749,9 +754,9 @@ func (s *Storage) LogSearchLocation(ctx context.Context, latitude, longitude, di
 		// Update existing location
 		_, err := s.db.ExecContext(ctx, `
 			UPDATE location_logs
-			SET search_count = search_count + 1, last_search = CURRENT_TIMESTAMP
+			SET search_count = search_count + 1, last_search = CURRENT_TIMESTAMP, distance = ?
 			WHERE id = ?
-		`, id)
+		`, distance, id)
 
 		if err != nil {
 			return fmt.Errorf("error updating search location: %w", err)

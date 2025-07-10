@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -29,6 +30,8 @@ func main() {
 	dbPath := flag.String("db", "fuel_prices.db", "Path to the database file")
 	flag.Parse()
 
+	ctx := context.Background()
+
 	logger := httplog.NewLogger("gasdb", httplog.Options{
 		JSON:            false,
 		LogLevel:        slog.LevelDebug,
@@ -37,7 +40,7 @@ func main() {
 	})
 
 	// Initialize storage
-	storage, err := gasdb.NewStorage(*dbPath, logger.Logger)
+	storage, err := gasdb.NewStorage(ctx, *dbPath, logger.Logger)
 	if err != nil {
 		log.Fatalf("Error initializing storage: %v", err)
 	}
@@ -50,7 +53,7 @@ func main() {
 		defer ticker.Stop()
 
 		for {
-			if err := storage.UpdateDB(); err != nil {
+			if err := storage.UpdateDB(ctx); err != nil {
 				logger.Error("Error updating prices", "error", err)
 			} else {
 				logger.Info("Price update completed successfully")
@@ -123,7 +126,7 @@ func main() {
 		}
 
 		// Find nearby stations
-		nearbyStations, err := storage.NearbyPrices(lat, lng, radius*1000)
+		nearbyStations, err := storage.NearbyPrices(ctx, lat, lng, radius*1000)
 		if err != nil {
 			http.Error(w, "Error finding nearby stations: "+err.Error(), http.StatusInternalServerError)
 			return
