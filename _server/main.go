@@ -71,7 +71,11 @@ func main() {
 
 	// Define routes
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		templates.Home().Render(r.Context(), w)
+		lastUpdate, err := storage.GetLastUpdateDate(r.Context())
+		if err != nil {
+			logger.Error("Error getting last update date", "error", err)
+		}
+		templates.Home(lastUpdate).Render(r.Context(), w)
 	})
 
 	r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
@@ -120,7 +124,11 @@ func main() {
 				}
 			} else {
 				// If neither location nor coordinates are provided, show the home page
-				templates.Home().Render(r.Context(), w)
+				lastUpdate, err := storage.GetLastUpdateDate(r.Context())
+				if err != nil {
+					logger.Error("Error getting last update date", "error", err)
+				}
+				templates.Home(lastUpdate).Render(r.Context(), w)
 				return
 			}
 		}

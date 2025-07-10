@@ -446,6 +446,25 @@ func (s *Storage) GetLastPrices(ctx context.Context) (*api.GasStationList, error
 	return &pricesResponse, nil
 }
 
+func (s *Storage) GetLastUpdateDate(ctx context.Context) (*time.Time, error) {
+	var dateStr string
+	err := s.db.QueryRowContext(ctx, "SELECT date FROM fuel_prices ORDER BY date DESC LIMIT 1").Scan(&dateStr)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error querying last update date: %w", err)
+	}
+
+	// Parse the date string (format: YYYY-MM-DD)
+	lastUpdate, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing date %s: %w", dateStr, err)
+	}
+
+	return &lastUpdate, nil
+}
+
 func (s *Storage) NearbyPrices(ctx context.Context, lat, lng, distance float64) ([]*api.GasStation, error) {
 	// Create a cache key based on the parameters
 	cacheKey := fmt.Sprintf("nearby_prices_%f_%f_%f", lat, lng, distance)

@@ -1,10 +1,17 @@
 package templates
 
-templ Home() {
+import "time"
+
+templ Home(lastUpdate *time.Time) {
 	@Base("Fuel Station Finder - Home") {
 		<div class="form">
 			<div class="form-body">
 				<h1 class="form-title mb-4">🔎 Nearby Fuel Stations</h1>
+				if lastUpdate != nil {
+					<p class="text-muted mb-3">
+						<small>📅 Fuel prices last updated: { lastUpdate.Format("2006-01-02") }</small>
+					</p>
+				}
 				<form action="/search" method="get" id="searchForm">
 					<div class="mb-3">
 						<label for="location" class="form-label">Location</label>
