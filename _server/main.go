@@ -25,6 +25,8 @@ import (
 	"github.com/tkrajina/gpxgo/gpx"
 )
 
+const DefaultRadius = 5.0 // km
+
 func main() {
 	c := cache.New(30*time.Minute, 90*time.Minute)
 	port := flag.Int("port", 8080, "HTTP server port")
@@ -94,11 +96,11 @@ func main() {
 
 		// Set default radius if not provided or invalid
 		if radiusStr == "" {
-			radius = 3.0
+			radius = DefaultRadius
 		} else {
 			radius, err = strconv.ParseFloat(radiusStr, 64)
 			if err != nil || radius <= 0 {
-				radius = 3.0
+				radius = DefaultRadius
 			}
 		}
 
