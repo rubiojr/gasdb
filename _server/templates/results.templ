@@ -5,42 +5,43 @@ import (
 	"strings"
 
 	"github.com/rubiojr/gasdb/pkg/api"
+	"github.com/rubiojr/gasdb/_server/translations"
 )
 
-templ ResultsPage(stations []api.StationWithDistance, query string, lat, lng, radius float64, err error) {
-	@Base("Fuel Station Results") {
+templ ResultsPage(stations []api.StationWithDistance, query string, lat, lng, radius float64, err error, t translations.Translations) {
+	@Base(t.ResultsTitle, t) {
 		<div class="results">
 		<div class="mb-4">
-			<h1>Nearby Fuel Stations</h1>
+			<h1>{ t.NearbyStations }</h1>
 			if query != "" {
-				<p>Results for: <strong>{ query }</strong></p>
+				<p>{ t.ResultsFor } <strong>{ query }</strong></p>
 			} else {
-				<p>Results for coordinates: <strong>{ fmt.Sprintf("%.6f, %.6f", lat, lng) }</strong></p>
+				<p>{ t.ResultsForCoords } <strong>{ fmt.Sprintf("%.6f, %.6f", lat, lng) }</strong></p>
 			}
-			<p>Search radius: <strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
-			<a href="/" class="btn btn-dark">New Search</a>
+			<p>{ t.SearchRadius } <strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
+			<a href="/" class="btn btn-dark">{ t.NewSearchButton }</a>
 		</div>
 
 		if len(stations) == 0 && err == nil {
 			<div class="alert alert-info">
-				No fuel stations found within { fmt.Sprintf("%.1f km", radius) } of your location.
+				{ t.NoStationsFound } { fmt.Sprintf("%.1f km", radius) } { t.OfYourLocation }
 			</div>
 		} else if err != nil {
 			<div class="alert alert-error">
-				Location not found.
+				{ t.LocationNotFound }
 			</div>
 		} else {
-			<p>Found <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> stations within { fmt.Sprintf("%.1f km", radius) }</p>
+			<p>{ t.StationsFound } <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> { t.StationsWithin } { fmt.Sprintf("%.1f km", radius) }</p>
 
 			for _, station := range stations {
-				@StationCard(station)
+				@StationCard(station, t)
 			}
 		}
 		</div>
 	}
 }
 
-templ StationCard(station api.StationWithDistance) {
+templ StationCard(station api.StationWithDistance, t translations.Translations) {
 	<div class="card station-card">
 		<div class="card-body">
 			<div class="mb-2">
@@ -52,9 +53,9 @@ templ StationCard(station api.StationWithDistance) {
 							formatDecimal(station.Station.Longitud))) }
 						target="_blank"
 						class="btn btn-map btn-sm mr-2"
-						alt="View on OpenStreetMap"
+						alt={ t.MapAltOSM }
 					>
-					🗺️ OSM
+					{ t.MapButton }
 					</a>
 					<a
 						href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
@@ -62,36 +63,36 @@ templ StationCard(station api.StationWithDistance) {
 							formatDecimal(station.Station.Longitud))) }
 						target="_blank"
 						class="btn btn-map btn-sm"
-						alt="View on Google Maps"
+						alt={ t.MapAltGoogle }
 					>
-					📍 Google Maps
+					{ t.GoogleMapsButton }
 					</a>
 				</span>
 			</div>
 			<div class="mb-2">
 				<span class="card-subtitle text-muted">{ station.Station.Direccion }</span>
-				<span class="col-md-6 text-success"><strong>{ fmt.Sprintf("%.2f km away", station.Distance/1000) }</strong></span>
+				<span class="col-md-6 text-success"><strong>{ fmt.Sprintf("%.2f %s", station.Distance/1000, t.KmAway) }</strong></span>
 			</div>
 
 			<div class="row">
 				<div class="col-md-6">
 					<div class="price-item">
-						<span class="text-muted">Gasoline 95:</span>
-						<strong>{ formatPrice(station.Station.PrecioGasolina95E5) }</strong>
+						<span class="text-muted">{ t.Gasoline95 }</span>
+						<strong>{ formatPrice(station.Station.PrecioGasolina95E5, t.NotAvailable) }</strong>
 					</div>
 					<div class="price-item">
-						<span class="text-muted">Gasoline 98:</span>
-						<strong>{ formatPrice(station.Station.PrecioGasolina98E5) }</strong>
+						<span class="text-muted">{ t.Gasoline98 }</span>
+						<strong>{ formatPrice(station.Station.PrecioGasolina98E5, t.NotAvailable) }</strong>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="price-item">
-						<span class="text-muted">Diesel:</span>
-						<strong>{ formatPrice(station.Station.PrecioGasoleoA) }</strong>
+						<span class="text-muted">{ t.Diesel }</span>
+						<strong>{ formatPrice(station.Station.PrecioGasoleoA, t.NotAvailable) }</strong>
 					</div>
 					<div class="price-item">
-						<span class="text-muted">Premium Diesel:</span>
-						<strong>{ formatPrice(station.Station.PrecioGasoleoPremium) }</strong>
+						<span class="text-muted">{ t.PremiumDiesel }</span>
+						<strong>{ formatPrice(station.Station.PrecioGasoleoPremium, t.NotAvailable) }</strong>
 					</div>
 				</div>
 			</div>
@@ -99,9 +100,9 @@ templ StationCard(station api.StationWithDistance) {
 	</div>
 }
 
-func formatPrice(value string) string {
+func formatPrice(value string, notAvailable string) string {
 	if value == "" {
-		return "N/A"
+		return notAvailable
 	}
 	return strings.Replace(value, ",", ".", 1) + " €"
 }

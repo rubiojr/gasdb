@@ -1,35 +1,38 @@
 package templates
 
-import "time"
+import (
+	"time"
+	"github.com/rubiojr/gasdb/_server/translations"
+)
 
-templ Home(lastUpdate *time.Time) {
-	@Base("Fuel Station Finder - Home") {
+templ Home(lastUpdate *time.Time, t translations.Translations) {
+	@Base(t.HomeTitle, t) {
 		<div class="form">
 			<div class="form-body">
-				<h1 class="form-title mb-4">🔎 Nearby Fuel Stations</h1>
+				<h1 class="form-title mb-4">{ t.HomeHeading }</h1>
 				if lastUpdate != nil {
 					<p class="text-muted mb-3">
-						<small>📅 Fuel prices last updated: { lastUpdate.Format("2006-01-02") }</small>
+						<small>{ t.LastUpdated } { lastUpdate.Format("2006-01-02") }</small>
 					</p>
 				}
 				<form action="/search" method="get" id="searchForm">
 					<div class="mb-3">
-						<label for="location" class="form-label">Location</label>
+						<label for="location" class="form-label">{ t.LocationLabel }</label>
 						<input
 							type="text"
 							class="form-control"
 							id="location"
 							name="location"
-							placeholder="Ciudad, provincia (Spain only)"
+							placeholder="{ t.LocationPlaceholder }"
 						/>
 					</div>
-					<p class="form-text">Ejemplo: Tibidabo, Barcelona</p>
+					<p class="form-text">{ t.LocationExample }</p>
 					<!-- Hidden inputs for latitude and longitude -->
 					<input type="hidden" id="latitude" name="lat"/>
 					<input type="hidden" id="longitude" name="lng"/>
 					<div class="btn-group mb-3">
-						<button type="submit" class="btn btn-dark">Search</button>
-						<button type="button" id="geolocateBtn" class="btn btn-outline-dark ms-2">Use My Location</button>
+						<button type="submit" class="btn btn-dark">{ t.SearchButton }</button>
+						<button type="button" id="geolocateBtn" class="btn btn-outline-dark ms-2">{ t.UseLocationButton }</button>
 					</div>
 				</form>
 				<div id="geoStatus" class="alert alert-info" style="display:none;"></div>
@@ -47,7 +50,7 @@ templ Home(lastUpdate *time.Time) {
 				// Check if geolocation is supported
 				if (!navigator.geolocation) {
 					geolocateBtn.disabled = true;
-					geolocateBtn.textContent = 'Geolocation not supported';
+					geolocateBtn.textContent = '{ t.GeolocationNotSupported }';
 					return;
 				}
 
@@ -55,7 +58,7 @@ templ Home(lastUpdate *time.Time) {
 					e.preventDefault();
 
 					geoStatus.style.display = 'block';
-					geoStatus.textContent = 'Requesting your location...';
+					geoStatus.textContent = '{ t.RequestingLocation }';
 
 					navigator.geolocation.getCurrentPosition(
 						// Success callback
@@ -70,7 +73,7 @@ templ Home(lastUpdate *time.Time) {
 							// Clear the location input since we're using coordinates
 							locationInput.value = '';
 
-							geoStatus.textContent = 'Location found! Searching nearby stations...';
+							geoStatus.textContent = '{ t.LocationFound }';
 
 							// Submit the form
 							searchForm.submit();
@@ -81,16 +84,16 @@ templ Home(lastUpdate *time.Time) {
 
 							switch(error.code) {
 								case error.PERMISSION_DENIED:
-									geoStatus.textContent = 'Location permission denied.';
+									geoStatus.textContent = '{ t.PermissionDenied }';
 									break;
 								case error.POSITION_UNAVAILABLE:
-									geoStatus.textContent = 'Location information is unavailable.';
+									geoStatus.textContent = '{ t.LocationUnavailable }';
 									break;
 								case error.TIMEOUT:
-									geoStatus.textContent = 'Location request timed out.';
+									geoStatus.textContent = '{ t.LocationTimeout }';
 									break;
 								default:
-									geoStatus.textContent = 'An unknown error occurred.';
+									geoStatus.textContent = '{ t.UnknownError }';
 									break;
 							}
 						},

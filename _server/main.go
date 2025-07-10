@@ -20,6 +20,7 @@ import (
 	"github.com/muesli/gominatim"
 	"github.com/patrickmn/go-cache"
 	"github.com/rubiojr/gasdb/_server/templates"
+	"github.com/rubiojr/gasdb/_server/translations"
 	"github.com/rubiojr/gasdb/internal/gasdb"
 	"github.com/rubiojr/gasdb/pkg/api"
 	"github.com/tkrajina/gpxgo/gpx"
@@ -74,15 +75,23 @@ func main() {
 
 	// Define routes
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		// Get language from query parameter
+		lang := translations.GetLanguageFromQuery(r.URL.Query().Get("lang"))
+		t := translations.GetTranslations(lang)
+
 		lastUpdate, err := storage.GetLastUpdateDate(r.Context())
 		if err != nil {
 			logger.Error("Error getting last update date", "error", err)
 		}
-		templates.Home(lastUpdate).Render(r.Context(), w)
+		templates.Home(lastUpdate, t).Render(r.Context(), w)
 	})
 
 	r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
+
+		// Get language from query parameter
+		lang := translations.GetLanguageFromQuery(query.Get("lang"))
+		t := translations.GetTranslations(lang)
 
 		location := query.Get("location")
 		fuelType := query.Get("fuel")
@@ -114,7 +123,7 @@ func main() {
 			lat, lng, err = geocodeLocation(location, c)
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
-				templates.ResultsPage([]api.StationWithDistance{}, location, lat, lng, radius, err).Render(r.Context(), w)
+				templates.ResultsPage([]api.StationWithDistance{}, location, lat, lng, radius, err, t).Render(r.Context(), w)
 				return
 			}
 		} else {
@@ -137,7 +146,7 @@ func main() {
 				if err != nil {
 					logger.Error("Error getting last update date", "error", err)
 				}
-				templates.Home(lastUpdate).Render(r.Context(), w)
+				templates.Home(lastUpdate, t).Render(r.Context(), w)
 				return
 			}
 		}
@@ -191,7 +200,7 @@ func main() {
 			return stations[i].Distance < stations[j].Distance
 		})
 
-		templates.ResultsPage(stations, location, lat, lng, radius, nil).Render(r.Context(), w)
+		templates.ResultsPage(stations, location, lat, lng, radius, nil, t).Render(r.Context(), w)
 	})
 
 	// Start server
