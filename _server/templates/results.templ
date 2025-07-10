@@ -51,10 +51,20 @@ templ StationCard(station api.StationWithDistance) {
 							formatDecimal(station.Station.Latitud),
 							formatDecimal(station.Station.Longitud))) }
 						target="_blank"
-						class="btn btn-map btn-sm"
+						class="btn btn-map btn-sm mr-2"
 						alt="View on OpenStreetMap"
 					>
-					🗺️ Map
+					🗺️ OSM
+					</a>
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
+							formatDecimal(station.Station.Latitud),
+							formatDecimal(station.Station.Longitud))) }
+						target="_blank"
+						class="btn btn-map btn-sm"
+						alt="View on Google Maps"
+					>
+					📍 Google Maps
 					</a>
 				</span>
 			</div>
