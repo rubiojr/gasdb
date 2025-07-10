@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -82,6 +83,7 @@ func main() {
 		query := r.URL.Query()
 
 		location := query.Get("location")
+		fuelType := query.Get("fuel")
 
 		latStr := query.Get("lat")
 		lngStr := query.Get("lng")
@@ -98,6 +100,11 @@ func main() {
 			if err != nil || radius <= 0 {
 				radius = 3.0
 			}
+		}
+
+		// Set default fuel type if not provided
+		if fuelType == "" {
+			fuelType = "gasolina95"
 		}
 
 		// Handle location search or direct coordinates
@@ -162,8 +169,23 @@ func main() {
 			}
 		}
 
-		// Sort by distance
+		// Sort by price (cheapest first), then by distance
 		sort.Slice(stations, func(i, j int) bool {
+			priceI := getFuelPrice(stations[i].Station, fuelType)
+			priceJ := getFuelPrice(stations[j].Station, fuelType)
+
+			// If both have prices, sort by price
+			if priceI > 0 && priceJ > 0 {
+				return priceI < priceJ
+			}
+			// If only one has a price, prioritize it
+			if priceI > 0 && priceJ == 0 {
+				return true
+			}
+			if priceI == 0 && priceJ > 0 {
+				return false
+			}
+			// If neither has a price, sort by distance
 			return stations[i].Distance < stations[j].Distance
 		})
 
@@ -219,4 +241,56 @@ func geocodeLocation(location string, c *cache.Cache) (lat, lng float64, err err
 	c.Set(location, results[0], cache.DefaultExpiration)
 
 	return gominatimResultToLatLon(results[0])
+}
+
+func getFuelPrice(station *api.GasStation, fuelType string) float64 {
+	var priceStr string
+
+	switch strings.ToLower(fuelType) {
+	case "gasolina95", "gasolina95e5":
+		priceStr = station.PrecioGasolina95E5
+	case "gasolina95e10":
+		priceStr = station.PrecioGasolina95E10
+	case "gasolina98", "gasolina98e5":
+		priceStr = station.PrecioGasolina98E5
+	case "gasolina98e10":
+		priceStr = station.PrecioGasolina98E10
+	case "gasolina95premium":
+		priceStr = station.PrecioGasolina95E5Prem
+	case "gasoleo", "gasoleoA":
+		priceStr = station.PrecioGasoleoA
+	case "gasoleoB":
+		priceStr = station.PrecioGasoleoB
+	case "gasoleoPremium":
+		priceStr = station.PrecioGasoleoPremium
+	case "biodiesel":
+		priceStr = station.PrecioBiodiesel
+	case "bioetanol":
+		priceStr = station.PrecioBioetanol
+	case "glp", "gaseslicuados":
+		priceStr = station.PrecioGasesLicuados
+	case "gnc", "gasnatural":
+		priceStr = station.PrecioGasNaturalComp
+	case "gnl", "gasnaturallicuado":
+		priceStr = station.PrecioGasNaturalLicuado
+	case "hidrogeno":
+		priceStr = station.PrecioHidrogeno
+	default:
+		priceStr = station.PrecioGasolina95E5
+	}
+
+	// Replace comma with dot for proper float parsing
+	priceStr = strings.Replace(priceStr, ",", ".", 1)
+
+	// Parse the price, return 0 if invalid or empty
+	if priceStr == "" || priceStr == "-" {
+		return 0
+	}
+
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		return 0
+	}
+
+	return price
 }
