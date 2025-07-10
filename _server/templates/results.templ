@@ -1,0 +1,101 @@
+package templates
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/rubiojr/gasdb/pkg/api"
+)
+
+templ ResultsPage(stations []api.StationWithDistance, query string, lat, lng, radius float64, err error) {
+	@Base("Fuel Station Results") {
+		<div class="results">
+		<div class="mb-4">
+			<h1>Nearby Fuel Stations</h1>
+			if query != "" {
+				<p>Results for: <strong>{ query }</strong></p>
+			} else {
+				<p>Results for coordinates: <strong>{ fmt.Sprintf("%.6f, %.6f", lat, lng) }</strong></p>
+			}
+			<p>Search radius: <strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
+			<a href="/" class="btn btn-dark">New Search</a>
+		</div>
+
+		if len(stations) == 0 && err == nil {
+			<div class="alert alert-info">
+				No fuel stations found within { fmt.Sprintf("%.1f km", radius) } of your location.
+			</div>
+		} else if err != nil {
+			<div class="alert alert-error">
+				Location not found.
+			</div>
+		} else {
+			<p>Found <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> stations within { fmt.Sprintf("%.1f km", radius) }</p>
+
+			for _, station := range stations {
+				@StationCard(station)
+			}
+		}
+		</div>
+	}
+}
+
+templ StationCard(station api.StationWithDistance) {
+	<div class="card station-card">
+		<div class="card-body">
+			<div class="mb-2">
+				<span class="card-title mr-2 mb-3">{ station.Station.Rotulo }</span>
+				<span>
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
+							formatDecimal(station.Station.Latitud),
+							formatDecimal(station.Station.Longitud))) }
+						target="_blank"
+						class="btn btn-map btn-sm"
+						alt="View on OpenStreetMap"
+					>
+					🗺️ Map
+					</a>
+				</span>
+			</div>
+			<div class="mb-2">
+				<span class="card-subtitle text-muted">{ station.Station.Direccion }</span>
+				<span class="col-md-6 text-success"><strong>{ fmt.Sprintf("%.2f km away", station.Distance/1000) }</strong></span>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<div class="price-item">
+						<span class="text-muted">Gasoline 95:</span>
+						<strong>{ formatPrice(station.Station.PrecioGasolina95E5) }</strong>
+					</div>
+					<div class="price-item">
+						<span class="text-muted">Gasoline 98:</span>
+						<strong>{ formatPrice(station.Station.PrecioGasolina98E5) }</strong>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="price-item">
+						<span class="text-muted">Diesel:</span>
+						<strong>{ formatPrice(station.Station.PrecioGasoleoA) }</strong>
+					</div>
+					<div class="price-item">
+						<span class="text-muted">Premium Diesel:</span>
+						<strong>{ formatPrice(station.Station.PrecioGasoleoPremium) }</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+func formatPrice(value string) string {
+	if value == "" {
+		return "N/A"
+	}
+	return strings.Replace(value, ",", ".", 1) + " €"
+}
+
+func formatDecimal(value string) string {
+	return strings.Replace(value, ",", ".", 1)
+}

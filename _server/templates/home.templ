@@ -1,0 +1,101 @@
+package templates
+
+templ Home() {
+	@Base("Fuel Station Finder - Home") {
+		<div class="form">
+			<div class="form-body">
+				<h1 class="form-title mb-4">🔎 Nearby Fuel Stations</h1>
+				<form action="/search" method="get" id="searchForm">
+					<div class="mb-3">
+						<label for="location" class="form-label">Location</label>
+						<input
+							type="text"
+							class="form-control"
+							id="location"
+							name="location"
+							placeholder="Ciudad, provincia (Spain only)"
+						/>
+					</div>
+					<p class="form-text">Ejemplo: Tibidabo, Barcelona</p>
+					<!-- Hidden inputs for latitude and longitude -->
+					<input type="hidden" id="latitude" name="lat"/>
+					<input type="hidden" id="longitude" name="lng"/>
+					<div class="btn-group mb-3">
+						<button type="submit" class="btn btn-dark">Search</button>
+						<button type="button" id="geolocateBtn" class="btn btn-outline-dark ms-2">Use My Location</button>
+					</div>
+				</form>
+				<div id="geoStatus" class="alert alert-info" style="display:none;"></div>
+			</div>
+		</div>
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				const geolocateBtn = document.getElementById('geolocateBtn');
+				const geoStatus = document.getElementById('geoStatus');
+				const locationInput = document.getElementById('location');
+				const latInput = document.getElementById('latitude');
+				const lngInput = document.getElementById('longitude');
+				const searchForm = document.getElementById('searchForm');
+
+				// Check if geolocation is supported
+				if (!navigator.geolocation) {
+					geolocateBtn.disabled = true;
+					geolocateBtn.textContent = 'Geolocation not supported';
+					return;
+				}
+
+				geolocateBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+
+					geoStatus.style.display = 'block';
+					geoStatus.textContent = 'Requesting your location...';
+
+					navigator.geolocation.getCurrentPosition(
+						// Success callback
+						function(position) {
+							const lat = position.coords.latitude;
+							const lng = position.coords.longitude;
+
+							// Set the values in the hidden fields
+							latInput.value = lat;
+							lngInput.value = lng;
+
+							// Clear the location input since we're using coordinates
+							locationInput.value = '';
+
+							geoStatus.textContent = 'Location found! Searching nearby stations...';
+
+							// Submit the form
+							searchForm.submit();
+						},
+						// Error callback
+						function(error) {
+							geoStatus.className = 'alert alert-error';
+
+							switch(error.code) {
+								case error.PERMISSION_DENIED:
+									geoStatus.textContent = 'Location permission denied.';
+									break;
+								case error.POSITION_UNAVAILABLE:
+									geoStatus.textContent = 'Location information is unavailable.';
+									break;
+								case error.TIMEOUT:
+									geoStatus.textContent = 'Location request timed out.';
+									break;
+								default:
+									geoStatus.textContent = 'An unknown error occurred.';
+									break;
+							}
+						},
+						// Options
+						{
+							enableHighAccuracy: true,
+							timeout: 5000,
+							maximumAge: 0
+						}
+					);
+				});
+			});
+		</script>
+	}
+}

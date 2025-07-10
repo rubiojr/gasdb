@@ -1,0 +1,117 @@
+package api
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/tkrajina/gpxgo/gpx"
+)
+
+type FuelPriceAPI struct {
+	baseURL    string
+	httpClient *http.Client
+}
+
+func NewFuelPriceAPI() *FuelPriceAPI {
+	return &FuelPriceAPI{
+		baseURL: "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist",
+		httpClient: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
+}
+
+func (api *FuelPriceAPI) FetchPricesForDate(date time.Time) (*GasStationList, error) {
+	dateStr := date.Format("02-01-2006")
+	url := fmt.Sprintf("%s/%s", api.baseURL, dateStr)
+
+	resp, err := api.httpClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching data: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	var pricesResponse GasStationList
+	if err := json.Unmarshal(body, &pricesResponse); err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
+	}
+
+	return &pricesResponse, nil
+}
+
+func (api *FuelPriceAPI) FetchPrices() (*GasStationList, error) {
+	url := strings.Replace(api.baseURL, "EstacionesTerrestresHist", "EstacionesTerrestres", 1)
+
+	resp, err := api.httpClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching data: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	var pricesResponse GasStationList
+	if err := json.Unmarshal(body, &pricesResponse); err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
+	}
+
+	return &pricesResponse, nil
+}
+
+func (api *FuelPriceAPI) NearbyPrices(lat, lng, distance float64) ([]*GasStation, error) {
+	prices, err := api.FetchPrices()
+	if err != nil {
+		return nil, fmt.Errorf("error fetching current prices: %w", err)
+	}
+
+	var nearbyStations []*GasStation
+	for _, station := range prices.ListaEESSPrecio {
+		stationLat, err := parseLatLong(station.Latitud)
+		if err != nil {
+			continue
+		}
+
+		stationLng, err := parseLatLong(station.Longitud)
+		if err != nil {
+			continue
+		}
+
+		calculatedDistance := gpx.Distance2D(lat, lng, stationLat, stationLng, true)
+		if calculatedDistance <= distance {
+			nearbyStations = append(nearbyStations, &station)
+		}
+	}
+
+	return nearbyStations, nil
+}
+
+func parseLatLong(s string) (float64, error) {
+	s = strings.Replace(s, ",", ".", 1)
+	m, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return m, nil
+}

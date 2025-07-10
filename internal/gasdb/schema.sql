@@ -1,0 +1,88 @@
+CREATE TABLE fuel_prices (
+		date TEXT PRIMARY KEY,
+		data JSON,
+		fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+CREATE TABLE historic_prices (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		date TEXT NOT NULL,
+		ideess TEXT NOT NULL,
+		cp TEXT,
+		direccion TEXT,
+		horario TEXT,
+		latitud TEXT,
+		localidad TEXT,
+		longitud TEXT,
+		margen TEXT,
+		municipio TEXT,
+		provincia TEXT,
+		rotulo TEXT,
+		tipo_venta TEXT,
+		precio_biodiesel TEXT,
+		precio_bioetanol TEXT,
+		precio_gas_natural_comp TEXT,
+		precio_gas_natural_licuado TEXT,
+		precio_gases_licuados TEXT,
+		precio_gasoleo_a TEXT,
+		precio_gasoleo_b TEXT,
+		precio_gasoleo_premium TEXT,
+		precio_gasolina_95_e10 TEXT,
+		precio_gasolina_95_e5 TEXT,
+		precio_gasolina_95_e5_prem TEXT,
+		precio_gasolina_98_e10 TEXT,
+		precio_gasolina_98_e5 TEXT,
+		precio_hidrogeno TEXT,
+		porcentaje_bioetanol TEXT,
+		porcentaje_ester_metilico TEXT,
+		id_municipio TEXT,
+		id_provincia TEXT,
+		id_ccaa TEXT,
+		UNIQUE(date, ideess)
+	);
+CREATE TRIGGER insert_historic_prices
+	AFTER INSERT ON fuel_prices
+	BEGIN
+		INSERT OR REPLACE INTO historic_prices (
+			date, ideess, cp, direccion, horario, latitud, localidad, longitud,
+			margen, municipio, provincia, rotulo, tipo_venta, precio_biodiesel,
+			precio_bioetanol, precio_gas_natural_comp, precio_gas_natural_licuado,
+			precio_gases_licuados, precio_gasoleo_a, precio_gasoleo_b, precio_gasoleo_premium,
+			precio_gasolina_95_e10, precio_gasolina_95_e5, precio_gasolina_95_e5_prem,
+			precio_gasolina_98_e10, precio_gasolina_98_e5, precio_hidrogeno,
+			porcentaje_bioetanol, porcentaje_ester_metilico, id_municipio, id_provincia, id_ccaa
+		)
+		SELECT
+			NEW.date,
+			json_extract(value, '$.IDEESS'),
+			json_extract(value, '$."C.P."'),
+			json_extract(value, '$."Dirección"'),
+			json_extract(value, '$.Horario'),
+			json_extract(value, '$.Latitud'),
+			json_extract(value, '$.Localidad'),
+			json_extract(value, '$."Longitud (WGS84)"'),
+			json_extract(value, '$.Margen'),
+			json_extract(value, '$.Municipio'),
+			json_extract(value, '$.Provincia'),
+			json_extract(value, '$."Rótulo"'),
+			json_extract(value, '$."Tipo Venta"'),
+			json_extract(value, '$."Precio Biodiesel"'),
+			json_extract(value, '$."Precio Bioetanol"'),
+			json_extract(value, '$."Precio Gas Natural Comprimido"'),
+			json_extract(value, '$."Precio Gas Natural Licuado"'),
+			json_extract(value, '$."Precio Gases licuados del petróleo"'),
+			json_extract(value, '$."Precio Gasoleo A"'),
+			json_extract(value, '$."Precio Gasoleo B"'),
+			json_extract(value, '$."Precio Gasoleo Premium"'),
+			json_extract(value, '$."Precio Gasolina 95 E10"'),
+			json_extract(value, '$."Precio Gasolina 95 E5"'),
+			json_extract(value, '$."Precio Gasolina 95 E5 Premium"'),
+			json_extract(value, '$."Precio Gasolina 98 E10"'),
+			json_extract(value, '$."Precio Gasolina 98 E5"'),
+			json_extract(value, '$."Precio Hidrogeno"'),
+			json_extract(value, '$."% BioEtanol"'),
+			json_extract(value, '$."% Éster metílico"'),
+			json_extract(value, '$.IDMunicipio'),
+			json_extract(value, '$.IDProvincia'),
+			json_extract(value, '$.IDCCAA')
+		FROM json_each(json_extract(NEW.data, '$.ListaEESSPrecio'));
+	END;

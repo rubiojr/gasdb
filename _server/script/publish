@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+templ generate -path templates
+GOOS=linux GOARCH=arm64 go build -o gasdb
+naked gasdb
