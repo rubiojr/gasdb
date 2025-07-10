@@ -1,10 +1,12 @@
 package api
 
+// StationWithDistance associates a GasStation with a computed distance.
 type StationWithDistance struct {
 	Station  *GasStation
 	Distance float64
 }
 
+// GasStationList represents the response structure from the fuel price API.
 type GasStationList struct {
 	Fecha             string       `json:"Fecha"`
 	ListaEESSPrecio   []GasStation `json:"ListaEESSPrecio"`
@@ -12,6 +14,7 @@ type GasStationList struct {
 	ResultadoConsulta string       `json:"ResultadoConsulta"`
 }
 
+// GasStation represents a single fuel station and its price information.
 type GasStation struct {
 	CP                      string `json:"C.P."`
 	Direccion               string `json:"Dirección"`

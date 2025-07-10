@@ -1,3 +1,5 @@
+// Package api provides types and functions to interact with the Spanish government
+// fuel price API, fetch fuel station data, and perform geospatial queries.
 package api
 
 import (
@@ -12,11 +14,13 @@ import (
 	"github.com/tkrajina/gpxgo/gpx"
 )
 
+// FuelPriceAPI provides methods to fetch fuel price data from the official API.
 type FuelPriceAPI struct {
 	baseURL    string
 	httpClient *http.Client
 }
 
+// NewFuelPriceAPI creates a new FuelPriceAPI client with default settings.
 func NewFuelPriceAPI() *FuelPriceAPI {
 	return &FuelPriceAPI{
 		baseURL: "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist",
@@ -26,6 +30,7 @@ func NewFuelPriceAPI() *FuelPriceAPI {
 	}
 }
 
+// FetchPricesForDate fetches fuel station prices for a specific date.
 func (api *FuelPriceAPI) FetchPricesForDate(date time.Time) (*GasStationList, error) {
 	dateStr := date.Format("02-01-2006")
 	url := fmt.Sprintf("%s/%s", api.baseURL, dateStr)
@@ -53,6 +58,7 @@ func (api *FuelPriceAPI) FetchPricesForDate(date time.Time) (*GasStationList, er
 	return &pricesResponse, nil
 }
 
+// FetchPrices fetches the latest available fuel station prices.
 func (api *FuelPriceAPI) FetchPrices() (*GasStationList, error) {
 	url := strings.Replace(api.baseURL, "EstacionesTerrestresHist", "EstacionesTerrestres", 1)
 
@@ -79,6 +85,7 @@ func (api *FuelPriceAPI) FetchPrices() (*GasStationList, error) {
 	return &pricesResponse, nil
 }
 
+// NearbyPrices returns a list of gas stations within a given distance (meters) from the specified coordinates.
 func (api *FuelPriceAPI) NearbyPrices(lat, lng, distance float64) ([]*GasStation, error) {
 	prices, err := api.FetchPrices()
 	if err != nil {
@@ -106,6 +113,7 @@ func (api *FuelPriceAPI) NearbyPrices(lat, lng, distance float64) ([]*GasStation
 	return nearbyStations, nil
 }
 
+// parseLatLong parses a latitude or longitude string (with comma or dot) to float64.
 func parseLatLong(s string) (float64, error) {
 	s = strings.Replace(s, ",", ".", 1)
 	m, err := strconv.ParseFloat(s, 64)
