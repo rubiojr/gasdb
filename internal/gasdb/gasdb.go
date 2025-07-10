@@ -25,6 +25,32 @@ type Storage struct {
 	log   *slog.Logger
 }
 
+// GetAllDates returns all dates present in the fuel_prices table, sorted ascending.
+func (s *Storage) GetAllDates() ([]time.Time, error) {
+	rows, err := s.db.Query("SELECT date FROM fuel_prices ORDER BY date ASC")
+	if err != nil {
+		return nil, fmt.Errorf("error querying dates: %w", err)
+	}
+	defer rows.Close()
+
+	var dates []time.Time
+	for rows.Next() {
+		var dateStr string
+		if err := rows.Scan(&dateStr); err != nil {
+			return nil, fmt.Errorf("error scanning date: %w", err)
+		}
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+		dates = append(dates, date)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row error: %w", err)
+	}
+	return dates, nil
+}
+
 func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 	db, err := sql.Open("sqlite3", "file:"+dbPath)
 	if err != nil {
