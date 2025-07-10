@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"time"
@@ -36,14 +37,15 @@ func checkStatusCommand() *cli.Command {
 }
 
 func checkStatusAction(c *cli.Context) error {
+	ctx := context.Background()
 	dbPath := c.String("db")
-	storage, err := gasdb.NewStorage(dbPath, slog.New(slog.DiscardHandler))
+	storage, err := gasdb.NewStorage(ctx, dbPath, slog.New(slog.DiscardHandler))
 	if err != nil {
 		return err
 	}
 	defer storage.Close()
 
-	allDates, err := storage.GetAllDates()
+	allDates, err := storage.GetAllDates(ctx)
 	if err != nil {
 		return err
 	}

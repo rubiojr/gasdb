@@ -1,6 +1,7 @@
 package gasdb
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -45,8 +46,8 @@ type Storage struct {
 }
 
 // GetAllDates returns all dates present in the fuel_prices table, sorted ascending.
-func (s *Storage) GetAllDates() ([]time.Time, error) {
-	rows, err := s.db.Query("SELECT date FROM fuel_prices ORDER BY date ASC")
+func (s *Storage) GetAllDates(ctx context.Context) ([]time.Time, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT date FROM fuel_prices ORDER BY date ASC")
 	if err != nil {
 		return nil, fmt.Errorf("error querying dates: %w", err)
 	}
@@ -70,18 +71,18 @@ func (s *Storage) GetAllDates() ([]time.Time, error) {
 	return dates, nil
 }
 
-func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
+func NewStorage(ctx context.Context, dbPath string, logger *slog.Logger) (*Storage, error) {
 	db, err := sql.Open("sqlite3", "file:"+dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
-	if err := configureSQLitePragmas(db, false, defaultCacheSize, defaultMmapSize); err != nil {
+	if err := configureSQLitePragmas(ctx, db, false, defaultCacheSize, defaultMmapSize); err != nil {
 		db.Close()
 		return nil, err
 	}
 
-	if err := createTables(db); err != nil {
+	if err := createTables(ctx, db); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating tables: %w", err)
 	}
@@ -95,19 +96,19 @@ func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 		log:   logger,
 	}
 
-	err = s.CreateHistoricPricesTable()
+	err = s.CreateHistoricPricesTable(ctx)
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating historic_prices table: %w", err)
 	}
 
-	err = s.CreateTrigger()
+	err = s.CreateTrigger(ctx)
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating trigger: %w", err)
 	}
 
-	err = s.CreateLocationLogsTable()
+	err = s.CreateLocationLogsTable(ctx)
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating location_logs table: %w", err)
@@ -116,28 +117,28 @@ func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 	return s, nil
 }
 
-func NewStorageMigrate(dbPath string, logger *slog.Logger) (*Storage, error) {
+func NewStorageMigrate(ctx context.Context, dbPath string, logger *slog.Logger) (*Storage, error) {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
-	if err := configureSQLitePragmas(db, true, migrationCacheSize, migrationMmapSize); err != nil {
+	if err := configureSQLitePragmas(ctx, db, true, migrationCacheSize, migrationMmapSize); err != nil {
 		db.Close()
 		return nil, err
 	}
 
 	// Additional migration-specific pragmas
-	if _, err = db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+	if _, err = db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
 	}
-	if _, err = db.Exec("PRAGMA temp_store = memory"); err != nil {
+	if _, err = db.ExecContext(ctx, "PRAGMA temp_store = memory"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error setting temp store: %w", err)
 	}
 
 	// Create tables if they don't exist
-	if err := createTables(db); err != nil {
+	if err := createTables(ctx, db); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating tables: %w", err)
 	}
@@ -151,7 +152,7 @@ func NewStorageMigrate(dbPath string, logger *slog.Logger) (*Storage, error) {
 	}
 
 	// Create historic prices table
-	if err := s.CreateHistoricPricesTable(); err != nil {
+	if err := s.CreateHistoricPricesTable(ctx); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating historic prices table: %w", err)
 	}
@@ -159,7 +160,7 @@ func NewStorageMigrate(dbPath string, logger *slog.Logger) (*Storage, error) {
 	return s, nil
 }
 
-func createTables(db *sql.DB) error {
+func createTables(ctx context.Context, db *sql.DB) error {
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS fuel_prices (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,11 +170,14 @@ func createTables(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_fuel_prices_date ON fuel_prices(date);
 	`
 
-	_, err := db.Exec(createTableSQL)
-	return err
+	_, err := db.ExecContext(ctx, createTableSQL)
+	if err != nil {
+		return fmt.Errorf("error creating table: %w", err)
+	}
+	return nil
 }
 
-func (s *Storage) CreateTrigger() error {
+func (s *Storage) CreateTrigger(ctx context.Context) error {
 	createTriggerSQL := `
 	CREATE TRIGGER IF NOT EXISTS insert_historic_prices
 	AFTER INSERT ON fuel_prices
@@ -224,7 +228,7 @@ func (s *Storage) CreateTrigger() error {
 	END;
 	`
 
-	_, err := s.db.Exec(createTriggerSQL)
+	_, err := s.db.ExecContext(ctx, createTriggerSQL)
 	if err != nil {
 		return fmt.Errorf("error creating trigger: %w", err)
 	}
@@ -232,15 +236,15 @@ func (s *Storage) CreateTrigger() error {
 	return nil
 }
 
-func (s *Storage) MigrateToHistoricPrices() error {
+func (s *Storage) MigrateToHistoricPrices(ctx context.Context) error {
 	s.log.Debug("Migrating to historic_prices table")
-	rows, err := s.db.Query("SELECT date, data FROM fuel_prices ORDER BY date")
+	rows, err := s.db.QueryContext(ctx, "SELECT date, data FROM fuel_prices ORDER BY date")
 	if err != nil {
 		return fmt.Errorf("error querying fuel_prices: %w", err)
 	}
 	defer rows.Close()
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
@@ -250,7 +254,7 @@ func (s *Storage) MigrateToHistoricPrices() error {
 		}
 	}()
 
-	stmt, err := tx.Prepare(`
+	stmt, err := tx.PrepareContext(ctx, `
 		INSERT OR REPLACE INTO historic_prices (
 			date, ideess, cp, direccion, horario, latitud, localidad, longitud,
 			margen, municipio, provincia, rotulo, tipo_venta, precio_biodiesel,
@@ -282,7 +286,7 @@ func (s *Storage) MigrateToHistoricPrices() error {
 
 		for i := range stationList.ListaEESSPrecio {
 			station := &stationList.ListaEESSPrecio[i]
-			_, err := stmt.Exec(
+			_, err := stmt.ExecContext(ctx,
 				dateStr, station.IDEESS, station.CP, station.Direccion, station.Horario,
 				station.Latitud, station.Localidad, station.Longitud, station.Margen,
 				station.Municipio, station.Provincia, station.Rotulo, station.TipoVenta,
@@ -312,7 +316,7 @@ func (s *Storage) MigrateToHistoricPrices() error {
 	return nil
 }
 
-func (s *Storage) CreateHistoricPricesTable() error {
+func (s *Storage) CreateHistoricPricesTable(ctx context.Context) error {
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS historic_prices (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -355,7 +359,7 @@ func (s *Storage) CreateHistoricPricesTable() error {
 	CREATE INDEX IF NOT EXISTS idx_historic_prices_latitud_longitud ON historic_prices(latitud, longitud);
 	`
 
-	_, err := s.db.Exec(createTableSQL)
+	_, err := s.db.ExecContext(ctx, createTableSQL)
 	if err != nil {
 		return fmt.Errorf("error creating historic_prices table: %w", err)
 	}
@@ -371,10 +375,10 @@ func (s *Storage) Close() error {
 	return s.db.Close()
 }
 
-func (s *Storage) SavePrices(date time.Time, data []byte) error {
+func (s *Storage) SavePrices(ctx context.Context, date time.Time, data []byte) error {
 	dateStr := date.Format("2006-01-02")
 
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
@@ -384,7 +388,7 @@ func (s *Storage) SavePrices(date time.Time, data []byte) error {
 		}
 	}()
 
-	_, err = tx.Exec("INSERT OR REPLACE INTO fuel_prices (date, data) VALUES (?, ?)", dateStr, data)
+	_, err = tx.ExecContext(ctx, "INSERT OR REPLACE INTO fuel_prices (date, data) VALUES (?, ?)", dateStr, data)
 	if err != nil {
 		return fmt.Errorf("error inserting data: %w", err)
 	}
@@ -400,17 +404,17 @@ func (s *Storage) SavePrices(date time.Time, data []byte) error {
 	return nil
 }
 
-func (s *Storage) HasDate(date time.Time) (bool, error) {
+func (s *Storage) HasDate(ctx context.Context, date time.Time) (bool, error) {
 	dateStr := date.Format("2006-01-02")
 	var count int
-	err := s.db.QueryRow("SELECT COUNT(*) FROM fuel_prices WHERE date = ?", dateStr).Scan(&count)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM fuel_prices WHERE date = ?", dateStr).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("error checking date existence: %w", err)
 	}
 	return count > 0, nil
 }
 
-func (s *Storage) GetLastPrice() (*api.GasStationList, error) {
+func (s *Storage) GetLastPrices(ctx context.Context) (*api.GasStationList, error) {
 	// Use a static cache key for the last price
 	const cacheKey = "last_price"
 
@@ -423,7 +427,7 @@ func (s *Storage) GetLastPrice() (*api.GasStationList, error) {
 
 	// If not in cache, fetch from database
 	var jsonData []byte
-	err := s.db.QueryRow("SELECT data FROM fuel_prices ORDER BY date DESC LIMIT 1").Scan(&jsonData)
+	err := s.db.QueryRowContext(ctx, "SELECT data FROM fuel_prices ORDER BY date DESC LIMIT 1").Scan(&jsonData)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no data available")
@@ -442,13 +446,13 @@ func (s *Storage) GetLastPrice() (*api.GasStationList, error) {
 	return &pricesResponse, nil
 }
 
-func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, error) {
+func (s *Storage) NearbyPrices(ctx context.Context, lat, lng, distance float64) ([]*api.GasStation, error) {
 	// Create a cache key based on the parameters
 	cacheKey := fmt.Sprintf("nearby_prices_%f_%f_%f", lat, lng, distance)
 
 	// Log the search location
 	newLat, newLong := reduceLocationPrecision(lat, lng, defaultReducePrecisionDecimalPlace)
-	err := s.LogSearchLocation(newLat, newLong, distance)
+	err := s.LogSearchLocation(ctx, newLat, newLong, distance)
 	if err != nil {
 		// Log error but don't fail the search if logging fails
 		s.log.Error("Failed to log search location", "error", err)
@@ -465,7 +469,7 @@ func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, e
 	s.log.Debug("Fetching data from database, cached data not found", "key", cacheKey)
 
 	// If not in cache, fetch from database
-	pricesResponse, err := s.GetLastPrice()
+	pricesResponse, err := s.GetLastPrices(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting last price: %w", err)
 	}
@@ -495,11 +499,11 @@ func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, e
 	return nearbyStations, nil
 }
 
-func (s *Storage) GetPricesForDate(date time.Time) (*api.GasStationList, error) {
+func (s *Storage) GetPrices(ctx context.Context, date time.Time) (*api.GasStationList, error) {
 	dateStr := date.Format("2006-01-02")
 
 	var jsonData []byte
-	err := s.db.QueryRow("SELECT data FROM fuel_prices WHERE date = ?", dateStr).Scan(&jsonData)
+	err := s.db.QueryRowContext(ctx, "SELECT data FROM fuel_prices WHERE date = ?", dateStr).Scan(&jsonData)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("no data available for date %s", dateStr)
@@ -520,7 +524,7 @@ func (s *Storage) GetPricesForDate(date time.Time) (*api.GasStationList, error) 
 	return &pricesResponse, nil
 }
 
-func (s *Storage) UpdateDB() error {
+func (s *Storage) UpdateDB(ctx context.Context) error {
 	fuelAPI := api.NewFuelPriceAPI()
 	pricesResponse, err := fuelAPI.FetchPrices()
 	if err != nil {
@@ -531,19 +535,15 @@ func (s *Storage) UpdateDB() error {
 		return fmt.Errorf("API returned non-OK result: %s", pricesResponse.ResultadoConsulta)
 	}
 
-	jsonData, err := json.Marshal(pricesResponse)
+	data, err := json.Marshal(pricesResponse)
 	if err != nil {
-		return fmt.Errorf("error marshaling JSON: %w", err)
+		return fmt.Errorf("error marshaling data: %w", err)
 	}
 
-	if err := s.SavePrices(time.Now(), jsonData); err != nil {
-		return fmt.Errorf("error saving data: %w", err)
-	}
-
-	return nil
+	return s.SavePrices(ctx, time.Now(), data)
 }
 
-func (s *Storage) GetPopularLocations(limit int) ([]map[string]interface{}, error) {
+func (s *Storage) GetPopularLocationsMap(limit int) ([]map[string]interface{}, error) {
 	query := `
 	SELECT lat, lng, distance, count, last_search
 	FROM search_locations
@@ -551,7 +551,7 @@ func (s *Storage) GetPopularLocations(limit int) ([]map[string]interface{}, erro
 	LIMIT ?
 	`
 
-	rows, err := s.db.Query(query, limit)
+	rows, err := s.db.QueryContext(context.Background(), query, limit)
 	if err != nil {
 		return nil, fmt.Errorf("error querying popular locations: %w", err)
 	}
@@ -595,20 +595,19 @@ func ParseLatLong(s string) (float64, error) {
 	return m, nil
 }
 
-func (s *Storage) UpdateDBAll() error {
+func (s *Storage) UpdateDBAll(ctx context.Context) error {
 	fuelAPI := api.NewFuelPriceAPI()
 
 	startDate := time.Date(2007, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Now().AddDate(0, 0, -1)
 
 	for date := startDate; date.Before(endDate) || date.Equal(endDate); date = date.AddDate(0, 0, 1) {
-		exists, err := s.HasDate(date)
+		hasDate, err := s.HasDate(ctx, date)
 		if err != nil {
 			s.log.Debug("error checking if date exists", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
-
-		if exists {
+		if hasDate {
 			continue
 		}
 
@@ -616,7 +615,7 @@ func (s *Storage) UpdateDBAll() error {
 
 		pricesResponse, err := fuelAPI.FetchPricesForDate(date)
 		if err != nil {
-			s.log.Debug("error fetching data for", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("Error fetching prices for date", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
@@ -627,24 +626,22 @@ func (s *Storage) UpdateDBAll() error {
 
 		jsonData, err := json.Marshal(pricesResponse)
 		if err != nil {
-			s.log.Debug("error marshaling JSON for", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("Error marshaling JSON for", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
-		if err := s.SavePrices(date, jsonData); err != nil {
+		if err := s.SavePrices(ctx, date, jsonData); err != nil {
 			s.log.Debug("error saving data for", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
-
-		s.log.Debug("successfully saved data for", "date", date.Format("2006-01-02"))
-
-		time.Sleep(defaultSleepMs * time.Millisecond)
+		s.log.Debug("Saved data for", "date", date.Format("2006-01-02"))
+		time.Sleep(time.Duration(defaultSleepMs) * time.Millisecond)
 	}
 
-	// Save today's prices
+	// Fetch latest data
 	pricesResponse, err := fuelAPI.FetchPrices()
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching latest data: %w", err)
 	}
 
 	if pricesResponse.ResultadoConsulta != api.ApiResultOK {
@@ -656,15 +653,10 @@ func (s *Storage) UpdateDBAll() error {
 		return fmt.Errorf("error marshaling JSON: %w", err)
 	}
 
-	if err := s.SavePrices(endDate.AddDate(0, 0, 1), jsonData); err != nil {
-		return fmt.Errorf("error saving data for today: %w", err)
-	}
-
-	log.Printf("Successfully saved data for today")
-	return nil
+	return s.SavePrices(ctx, time.Now(), jsonData)
 }
 
-func (s *Storage) CreateLocationLogsTable() error {
+func (s *Storage) CreateLocationLogsTable(ctx context.Context) error {
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS location_logs (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -680,7 +672,7 @@ func (s *Storage) CreateLocationLogsTable() error {
 	CREATE INDEX IF NOT EXISTS idx_location_logs_coordinates ON location_logs (latitude, longitude);
 	`
 
-	_, err := s.db.Exec(createTableSQL)
+	_, err := s.db.ExecContext(ctx, createTableSQL)
 	if err != nil {
 		return fmt.Errorf("error creating location_logs table: %w", err)
 	}
@@ -696,11 +688,11 @@ func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (roundedLat, r
 	return
 }
 
-func configureSQLitePragmas(db *sql.DB, forMigration bool, cacheSize, mmapSize int) error {
-	if _, err := db.Exec("PRAGMA journal_mode = WAL;"); err != nil {
+func configureSQLitePragmas(ctx context.Context, db *sql.DB, forMigration bool, cacheSize, mmapSize int) error {
+	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode = WAL;"); err != nil {
 		return fmt.Errorf("error setting journal mode: %w", err)
 	}
-	if _, err := db.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
+	if _, err := db.ExecContext(ctx, "PRAGMA busy_timeout = 5000;"); err != nil {
 		return fmt.Errorf("error setting busy timeout: %w", err)
 	}
 
@@ -708,30 +700,30 @@ func configureSQLitePragmas(db *sql.DB, forMigration bool, cacheSize, mmapSize i
 	if forMigration {
 		syncMode = "OFF"
 	}
-	if _, err := db.Exec(fmt.Sprintf("PRAGMA synchronous = %s;", syncMode)); err != nil {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA synchronous = %s;", syncMode)); err != nil {
 		return fmt.Errorf("error setting synchronous: %w", err)
 	}
 
-	if _, err := db.Exec(fmt.Sprintf("PRAGMA cache_size = %d;", cacheSize)); err != nil {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA cache_size = %d;", cacheSize)); err != nil {
 		return fmt.Errorf("error setting cache size: %w", err)
 	}
-	if _, err := db.Exec(fmt.Sprintf("PRAGMA page_size = %d;", defaultPageSize)); err != nil {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA page_size = %d;", defaultPageSize)); err != nil {
 		return fmt.Errorf("error setting page size: %w", err)
 	}
-	if _, err := db.Exec(fmt.Sprintf("PRAGMA mmap_size = %d", mmapSize)); err != nil {
+	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA mmap_size = %d", mmapSize)); err != nil {
 		return fmt.Errorf("error setting mmap size: %w", err)
 	}
 	return nil
 }
 
-func (s *Storage) LogSearchLocation(latitude, longitude, distance float64) error {
+func (s *Storage) LogSearchLocation(ctx context.Context, latitude, longitude, distance float64) error {
 	// First check if a similar location (with small tolerance) exists
 
 	var id int64
 	var count int
 
 	newLat, newLong := reduceLocationPrecision(latitude, longitude, defaultReducePrecisionDecimalPlace)
-	err := s.db.QueryRow(`
+	err := s.db.QueryRowContext(ctx, `
 		SELECT id, search_count FROM location_logs
 		WHERE latitude = ?
 		AND longitude = ?
@@ -745,7 +737,7 @@ func (s *Storage) LogSearchLocation(latitude, longitude, distance float64) error
 
 	if err == sql.ErrNoRows {
 		// Insert new location
-		_, err := s.db.Exec(`
+		_, err := s.db.ExecContext(ctx, `
 			INSERT INTO location_logs (latitude, longitude, distance)
 			VALUES (?, ?, ?)
 		`, latitude, longitude, distance)
@@ -755,11 +747,11 @@ func (s *Storage) LogSearchLocation(latitude, longitude, distance float64) error
 		}
 	} else {
 		// Update existing location
-		_, err := s.db.Exec(`
+		_, err := s.db.ExecContext(ctx, `
 			UPDATE location_logs
-			SET search_count = search_count + 1, last_search = CURRENT_TIMESTAMP, distance = ?
+			SET search_count = search_count + 1, last_search = CURRENT_TIMESTAMP
 			WHERE id = ?
-		`, distance, id)
+		`, id)
 
 		if err != nil {
 			return fmt.Errorf("error updating search location: %w", err)
@@ -783,26 +775,16 @@ type LocationLog struct {
 // GetLocationLogs retrieves location logs from the database
 // limit: maximum number of rows to return (0 for all)
 // orderBy: "count" for most searched or "time" for most recent
-func (s *Storage) GetLocationLogs(limit int, orderBy string) ([]LocationLog, error) {
+func (s *Storage) GetLocationLogs(ctx context.Context, limit int) ([]LocationLog, error) {
 	query := `SELECT id, latitude, longitude, distance, search_count, search_time, last_search
-			  FROM location_logs `
+			  FROM location_logs
+			  ORDER BY search_count DESC `
 
-	// Add ordering
-	switch orderBy {
-	case "count":
-		query += "ORDER BY search_count DESC "
-	case "time":
-		query += "ORDER BY last_search DESC "
-	default:
-		query += "ORDER BY id DESC "
-	}
-
-	// Add limit
 	if limit > 0 {
 		query += fmt.Sprintf("LIMIT %d", limit)
 	}
 
-	rows, err := s.db.Query(query)
+	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving location logs: %w", err)
 	}
@@ -810,19 +792,19 @@ func (s *Storage) GetLocationLogs(limit int, orderBy string) ([]LocationLog, err
 
 	var logs []LocationLog
 	for rows.Next() {
-		var log LocationLog
+		var logEntry LocationLog
 		if err := rows.Scan(
-			&log.ID,
-			&log.Latitude,
-			&log.Longitude,
-			&log.Distance,
-			&log.SearchCount,
-			&log.SearchTime,
-			&log.LastSearch,
+			&logEntry.ID,
+			&logEntry.Latitude,
+			&logEntry.Longitude,
+			&logEntry.Distance,
+			&logEntry.SearchCount,
+			&logEntry.SearchTime,
+			&logEntry.LastSearch,
 		); err != nil {
 			return nil, fmt.Errorf("error scanning location log: %w", err)
 		}
-		logs = append(logs, log)
+		logs = append(logs, logEntry)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -842,9 +824,9 @@ type PopularLocation struct {
 
 // GetPopularLocationHeatmap returns data suitable for generating a heatmap
 // of popular search locations, with nearby searches clustered together
-func (s *Storage) GetPopularLocationHeatmap() ([]PopularLocation, error) {
+func (s *Storage) GetPopularLocationHeatmap(ctx context.Context, limit int) ([]PopularLocation, error) {
 	// Get all location logs ordered by search count
-	logs, err := s.GetLocationLogs(0, "count")
+	logs, err := s.GetLocationLogs(ctx, 0)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/rubiojr/gasdb/internal/gasdb"
@@ -24,6 +25,7 @@ func migrateCommand() *cli.Command {
 }
 
 func migrateAction(c *cli.Context) error {
-	_, err := gasdb.NewStorageMigrate(c.String("db"), slog.New(slog.DiscardHandler))
+	ctx := context.Background()
+	_, err := gasdb.NewStorageMigrate(ctx, c.String("db"), slog.New(slog.DiscardHandler))
 	return err
 }

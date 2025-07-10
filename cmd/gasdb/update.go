@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/rubiojr/gasdb/internal/gasdb"
@@ -24,9 +25,10 @@ func updateCommand() *cli.Command {
 }
 
 func updateAction(c *cli.Context) error {
-	storage, err := gasdb.NewStorage(c.String("db"), slog.New(slog.DiscardHandler))
+	ctx := context.Background()
+	storage, err := gasdb.NewStorage(ctx, c.String("db"), slog.New(slog.DiscardHandler))
 	if err != nil {
 		return err
 	}
-	return storage.UpdateDBAll()
+	return storage.UpdateDBAll(ctx)
 }

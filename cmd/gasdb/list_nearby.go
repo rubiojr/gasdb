@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -101,7 +102,8 @@ func listNearbyByName(dbPath, name string, distanceKm float64) error {
 }
 
 func listNearbyStations(dbPath string, lat, lng, radius float64) error {
-	storage, err := gasdb.NewStorage(dbPath, slog.New(slog.DiscardHandler))
+	ctx := context.Background()
+	storage, err := gasdb.NewStorage(ctx, dbPath, slog.New(slog.DiscardHandler))
 	if err != nil {
 		return fmt.Errorf("error initializing storage: %w", err)
 	}
@@ -109,7 +111,7 @@ func listNearbyStations(dbPath string, lat, lng, radius float64) error {
 
 	fmt.Println("Filtering stations within\n", radius, "km radius...")
 
-	nearbyStations, err := storage.NearbyPrices(lat, lng, radius*metersPerKm)
+	nearbyStations, err := storage.NearbyPrices(ctx, lat, lng, radius*metersPerKm)
 	if err != nil {
 		return fmt.Errorf("error fetching nearby stations: %w", err)
 	}
