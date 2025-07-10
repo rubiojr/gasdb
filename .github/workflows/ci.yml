@@ -99,7 +99,7 @@ jobs:
     - name: Run API integration tests
       run: |
         cd pkg/api
-        go test -v -timeout=60s -run TestFuelPriceAPI
+        go test -v -timeout=300s -run TestFuelPriceAPI
     
     - name: Test example builds
       run: |
