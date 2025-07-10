@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"log/slog"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -34,43 +36,47 @@ func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 		db.Close()
 		return nil, fmt.Errorf("error setting journal mode: %w", err)
 	}
-
 	if _, err = db.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error setting busy timeout: %w", err)
 	}
-
-	if _, err = db.Exec("PRAGMA foreign_keys = ON;"); err != nil {
+	if _, err = db.Exec("PRAGMA synchronous = NORMAL;"); err != nil { // or OFF for migrate
 		db.Close()
-		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
+		return nil, fmt.Errorf("error setting synchronous: %w", err)
 	}
-
-	if _, err = db.Exec("PRAGMA synchronous = NORMAL;"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting synchronous mode: %w", err)
-	}
-
-	if _, err = db.Exec("PRAGMA cache_size = 1000000000;"); err != nil {
+	if _, err = db.Exec("PRAGMA cache_size = 8000;"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error setting cache size: %w", err)
 	}
 
-	if _, err = db.Exec("PRAGMA temp_store = memory;"); err != nil {
+	// Set optimal page size
+	_, err = db.Exec("PRAGMA page_size = 4096;")
+	if err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error setting temp store: %w", err)
+		return nil, fmt.Errorf("error setting page size: %w", err)
 	}
 
-	if _, err = db.Exec("PRAGMA mmap_size = 268435456;"); err != nil {
+	// Configure memory mapping
+	_, err = db.Exec("PRAGMA mmap_size = 67108864") // 64MB
+	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error setting mmap size: %w", err)
 	}
 
-	// Create tables if they don't exist
-	if err := createTables(db); err != nil {
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS fuel_prices (
+		date TEXT PRIMARY KEY,
+		data JSON,
+		fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);`
+
+	_, err = db.Exec(createTableSQL)
+	if err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error creating tables: %w", err)
+		return nil, fmt.Errorf("error creating table: %w", err)
 	}
 
+	// Initialize the cache with default expiration of 5 minutes and cleanup interval of 10 minutes
 	c := cache.New(10*time.Minute, 30*time.Minute)
 
 	s := &Storage{
@@ -79,16 +85,22 @@ func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 		log:   logger,
 	}
 
-	// Create trigger for historic prices
-	if err := s.CreateTrigger(); err != nil {
+	err = s.CreateHistoricPricesTable()
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("error creating historic_prices table: %w", err)
+	}
+
+	err = s.CreateTrigger()
+	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error creating trigger: %w", err)
 	}
 
-	// Create historic prices table
-	if err := s.CreateHistoricPricesTable(); err != nil {
+	err = s.CreateLocationLogsTable()
+	if err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error creating historic prices table: %w", err)
+		return nil, fmt.Errorf("error creating location_logs table: %w", err)
 	}
 
 	return s, nil
@@ -499,29 +511,26 @@ func (s *Storage) GetPricesForDate(date time.Time) (*api.GasStationList, error) 
 }
 
 func (s *Storage) UpdateDB() error {
-	// This method should not fetch data directly, it should accept an API interface
-	return fmt.Errorf("UpdateDB should be called with an API interface")
-}
-
-func (s *Storage) UpdateDBAll() error {
-	// This method should not fetch data directly, it should accept an API interface
-	return fmt.Errorf("UpdateDBAll should be called with an API interface")
-}
-
-func (s *Storage) LogSearchLocation(lat, lng, distance float64) error {
-	insertSQL := `
-	INSERT OR IGNORE INTO search_locations (lat, lng, distance, count, last_search)
-	VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
-	ON CONFLICT(lat, lng, distance) DO UPDATE SET
-		count = count + 1,
-		last_search = CURRENT_TIMESTAMP
-	`
-
-	_, err := s.db.Exec(insertSQL, lat, lng, distance)
+	api := api.NewFuelPriceAPI()
+	pricesResponse, err := api.FetchPrices()
 	if err != nil {
-		return fmt.Errorf("error logging search location: %w", err)
+		return err
 	}
 
+	if pricesResponse.ResultadoConsulta != "OK" {
+		return fmt.Errorf("API returned non-OK result: %s", pricesResponse.ResultadoConsulta)
+	}
+
+	jsonData, err := json.Marshal(pricesResponse)
+	if err != nil {
+		return fmt.Errorf("Error marshaling JSON: %w", err)
+	}
+
+	if err := s.SavePrices(time.Now(), jsonData); err != nil {
+		return fmt.Errorf("Error saving data for today: %w", err)
+	}
+
+	s.log.Debug("Successfully saved data for today")
 	return nil
 }
 
@@ -567,11 +576,6 @@ func (s *Storage) GetPopularLocations(limit int) ([]map[string]interface{}, erro
 	return popularLocations, nil
 }
 
-func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (float64, float64) {
-	factor := math.Pow(10, float64(decimalPlaces))
-	return math.Round(lat*factor) / factor, math.Round(lng*factor) / factor
-}
-
 func ParseLatLong(s string) (float64, error) {
 	s = strings.Replace(s, ",", ".", 1)
 	m, err := strconv.ParseFloat(s, 64)
@@ -580,4 +584,295 @@ func ParseLatLong(s string) (float64, error) {
 	}
 
 	return m, nil
+}
+
+func (s *Storage) UpdateDBAll() error {
+	api := api.NewFuelPriceAPI()
+
+	startDate := time.Date(2007, 1, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Now().AddDate(0, 0, -1)
+
+	for date := startDate; date.Before(endDate) || date.Equal(endDate); date = date.AddDate(0, 0, 1) {
+		exists, err := s.HasDate(date)
+		if err != nil {
+			s.log.Debug("Error checking if date exists", "date", date.Format("2006-01-02"), "error", err)
+			continue
+		}
+
+		if exists {
+			continue
+		}
+
+		s.log.Debug("Fetching data for", "date", date.Format("2006-01-02"))
+
+		pricesResponse, err := api.FetchPricesForDate(date)
+		if err != nil {
+			s.log.Debug("Error fetching data for", "date", date.Format("2006-01-02"), "error", err)
+			continue
+		}
+
+		if pricesResponse.ResultadoConsulta != "OK" {
+			s.log.Debug("API returned non-OK result for", "date", date.Format("2006-01-02"), "result", pricesResponse.ResultadoConsulta)
+			continue
+		}
+
+		jsonData, err := json.Marshal(pricesResponse)
+		if err != nil {
+			s.log.Debug("Error marshaling JSON for", "date", date.Format("2006-01-02"), "error", err)
+			continue
+		}
+
+		if err := s.SavePrices(date, jsonData); err != nil {
+			s.log.Debug("Error saving data for", "date", date.Format("2006-01-02"), "error", err)
+			continue
+		}
+
+		s.log.Debug("Successfully saved data for", "date", date.Format("2006-01-02"))
+
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	// Save today's prices
+	pricesResponse, err := api.FetchPrices()
+	if err != nil {
+		return err
+	}
+
+	if pricesResponse.ResultadoConsulta != "OK" {
+		return fmt.Errorf("API returned non-OK result: %s", pricesResponse.ResultadoConsulta)
+	}
+
+	jsonData, err := json.Marshal(pricesResponse)
+	if err != nil {
+		return fmt.Errorf("Error marshaling JSON: %w", err)
+	}
+
+	if err := s.SavePrices(endDate.AddDate(0, 0, 1), jsonData); err != nil {
+		return fmt.Errorf("Error saving data for today: %w", err)
+	}
+
+	log.Printf("Successfully saved data for today")
+	return nil
+}
+
+func (s *Storage) CreateLocationLogsTable() error {
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS location_logs (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		latitude REAL NOT NULL,
+		longitude REAL NOT NULL,
+		distance REAL NOT NULL,
+		search_count INTEGER NOT NULL DEFAULT 1,
+		search_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		last_search TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
+	-- Index for faster searches on location coordinates
+	CREATE INDEX IF NOT EXISTS idx_location_logs_coordinates ON location_logs (latitude, longitude);
+	`
+
+	_, err := s.db.Exec(createTableSQL)
+	if err != nil {
+		return fmt.Errorf("error creating location_logs table: %w", err)
+	}
+
+	s.log.Debug("Location logs table created or verified")
+	return nil
+}
+
+func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (float64, float64) {
+	factor := math.Pow(10, float64(decimalPlaces))
+	return math.Round(lat*factor) / factor, math.Round(lng*factor) / factor
+}
+
+func (s *Storage) LogSearchLocation(latitude, longitude, distance float64) error {
+	// First check if a similar location (with small tolerance) exists
+	const tolerance = 0.0001 // Approximately 10 meters
+
+	var id int64
+	var count int
+
+	newLat, newLong := reduceLocationPrecision(latitude, longitude, 2)
+	err := s.db.QueryRow(`
+		SELECT id, search_count FROM location_logs
+		WHERE latitude = ?
+		AND longitude = ?
+		ORDER BY ABS(latitude - ?) + ABS(longitude - ?) ASC
+		LIMIT 1
+	`, newLat, newLong, newLat, newLong).Scan(&id, &count)
+
+	if err != nil && err != sql.ErrNoRows {
+		return fmt.Errorf("error checking for existing location: %w", err)
+	}
+
+	if err == sql.ErrNoRows {
+		// Insert new location
+		_, err := s.db.Exec(`
+			INSERT INTO location_logs (latitude, longitude, distance)
+			VALUES (?, ?, ?)
+		`, latitude, longitude, distance)
+
+		if err != nil {
+			return fmt.Errorf("error logging search location: %w", err)
+		}
+	} else {
+		// Update existing location
+		_, err := s.db.Exec(`
+			UPDATE location_logs
+			SET search_count = search_count + 1, last_search = CURRENT_TIMESTAMP, distance = ?
+			WHERE id = ?
+		`, distance, id)
+
+		if err != nil {
+			return fmt.Errorf("error updating search location: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// LocationLog represents a row in the location_logs table
+type LocationLog struct {
+	ID          int64
+	Latitude    float64
+	Longitude   float64
+	Distance    float64
+	SearchCount int64
+	SearchTime  time.Time
+	LastSearch  time.Time
+}
+
+// GetLocationLogs retrieves location logs from the database
+// limit: maximum number of rows to return (0 for all)
+// orderBy: "count" for most searched or "time" for most recent
+func (s *Storage) GetLocationLogs(limit int, orderBy string) ([]LocationLog, error) {
+	query := `SELECT id, latitude, longitude, distance, search_count, search_time, last_search
+			  FROM location_logs `
+
+	// Add ordering
+	switch orderBy {
+	case "count":
+		query += "ORDER BY search_count DESC "
+	case "time":
+		query += "ORDER BY last_search DESC "
+	default:
+		query += "ORDER BY id DESC "
+	}
+
+	// Add limit
+	if limit > 0 {
+		query += fmt.Sprintf("LIMIT %d", limit)
+	}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving location logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []LocationLog
+	for rows.Next() {
+		var log LocationLog
+		if err := rows.Scan(
+			&log.ID,
+			&log.Latitude,
+			&log.Longitude,
+			&log.Distance,
+			&log.SearchCount,
+			&log.SearchTime,
+			&log.LastSearch,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning location log: %w", err)
+		}
+		logs = append(logs, log)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
+	}
+
+	return logs, nil
+}
+
+// PopularLocation represents a clustered area of searches with its popularity
+type PopularLocation struct {
+	Latitude    float64 `json:"lat"`
+	Longitude   float64 `json:"lng"`
+	SearchCount int64   `json:"weight"` // Used as weight in heatmaps
+	Radius      float64 `json:"radius"` // Estimated radius of the cluster in km
+}
+
+// GetPopularLocationHeatmap returns data suitable for generating a heatmap
+// of popular search locations, with nearby searches clustered together
+func (s *Storage) GetPopularLocationHeatmap() ([]PopularLocation, error) {
+	// Get all location logs ordered by search count
+	logs, err := s.GetLocationLogs(0, "count")
+	if err != nil {
+		return nil, err
+	}
+
+	// Clustering parameters
+	const clusterDistance = 0.01 // Approximately 1km
+
+	// Map to track processed logs
+	processed := make(map[int64]bool)
+
+	var popularLocations []PopularLocation
+
+	// Process logs and create clusters
+	for i, log := range logs {
+		if processed[log.ID] {
+			continue
+		}
+
+		// Mark this log as processed
+		processed[log.ID] = true
+
+		// Create a new cluster with this log as center
+		cluster := PopularLocation{
+			Latitude:    log.Latitude,
+			Longitude:   log.Longitude,
+			SearchCount: log.SearchCount,
+			Radius:      log.Distance, // Start with search distance as radius
+		}
+
+		// Check for nearby logs to merge into this cluster
+		for j, otherLog := range logs {
+			if i == j || processed[otherLog.ID] {
+				continue
+			}
+
+			// Calculate distance between points
+			distance := math.Sqrt(
+				math.Pow(log.Latitude-otherLog.Latitude, 2) +
+					math.Pow(log.Longitude-otherLog.Longitude, 2))
+
+			if distance <= clusterDistance {
+				// Merge this log into the cluster
+				processed[otherLog.ID] = true
+
+				// Update cluster properties based on weighted average
+				totalWeight := cluster.SearchCount + otherLog.SearchCount
+				cluster.Latitude = (cluster.Latitude*float64(cluster.SearchCount) +
+					otherLog.Latitude*float64(otherLog.SearchCount)) / float64(totalWeight)
+				cluster.Longitude = (cluster.Longitude*float64(cluster.SearchCount) +
+					otherLog.Longitude*float64(otherLog.SearchCount)) / float64(totalWeight)
+
+				// Update search count and expand radius if needed
+				cluster.SearchCount += otherLog.SearchCount
+				if otherLog.Distance > cluster.Radius {
+					cluster.Radius = otherLog.Distance
+				}
+			}
+		}
+
+		popularLocations = append(popularLocations, cluster)
+	}
+
+	// Sort by search count (most popular first)
+	sort.Slice(popularLocations, func(i, j int) bool {
+		return popularLocations[i].SearchCount > popularLocations[j].SearchCount
+	})
+
+	return popularLocations, nil
 }
