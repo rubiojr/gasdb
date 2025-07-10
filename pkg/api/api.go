@@ -3,6 +3,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +13,11 @@ import (
 	"time"
 
 	"github.com/tkrajina/gpxgo/gpx"
+)
+
+const (
+	ApiResultOK    = "OK"
+	DefaultTimeout = 30 * time.Second
 )
 
 // FuelPriceAPI provides methods to fetch fuel price data from the official API.
@@ -25,7 +31,7 @@ func NewFuelPriceAPI() *FuelPriceAPI {
 	return &FuelPriceAPI{
 		baseURL: "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist",
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout: DefaultTimeout,
 		},
 	}
 }
@@ -35,7 +41,11 @@ func (api *FuelPriceAPI) FetchPricesForDate(date time.Time) (*GasStationList, er
 	dateStr := date.Format("02-01-2006")
 	url := fmt.Sprintf("%s/%s", api.baseURL, dateStr)
 
-	resp, err := api.httpClient.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, http.NoBody)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+	resp, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching data: %w", err)
 	}
@@ -62,7 +72,11 @@ func (api *FuelPriceAPI) FetchPricesForDate(date time.Time) (*GasStationList, er
 func (api *FuelPriceAPI) FetchPrices() (*GasStationList, error) {
 	url := strings.Replace(api.baseURL, "EstacionesTerrestresHist", "EstacionesTerrestres", 1)
 
-	resp, err := api.httpClient.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, http.NoBody)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+	resp, err := api.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching data: %w", err)
 	}
@@ -93,7 +107,8 @@ func (api *FuelPriceAPI) NearbyPrices(lat, lng, distance float64) ([]*GasStation
 	}
 
 	var nearbyStations []*GasStation
-	for _, station := range prices.ListaEESSPrecio {
+	for i := range prices.ListaEESSPrecio {
+		station := &prices.ListaEESSPrecio[i]
 		stationLat, err := parseLatLong(station.Latitud)
 		if err != nil {
 			continue
@@ -106,7 +121,7 @@ func (api *FuelPriceAPI) NearbyPrices(lat, lng, distance float64) ([]*GasStation
 
 		calculatedDistance := gpx.Distance2D(lat, lng, stationLat, stationLng, true)
 		if calculatedDistance <= distance {
-			nearbyStations = append(nearbyStations, &station)
+			nearbyStations = append(nearbyStations, station)
 		}
 	}
 

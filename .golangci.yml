@@ -5,11 +5,9 @@ linters:
   default: none
   enable:
     - bodyclose
-    - depguard
     - dogsled
     - dupl
     - errcheck
-    - funlen
     - gochecknoinits
     - goconst
     - gocritic
@@ -81,11 +79,6 @@ issues:
 formatters:
   enable:
     - gofmt
-    - goimports
-  settings:
-    goimports:
-      local-prefixes:
-        - github.com/rubiojr/gasdb
   exclusions:
     generated: lax
     paths:

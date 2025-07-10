@@ -17,7 +17,7 @@ func TestFuelPriceAPI_FetchPrices(t *testing.T) {
 		t.Fatal("FetchPrices() returned nil prices")
 	}
 
-	if prices.ResultadoConsulta != "OK" {
+	if prices.ResultadoConsulta != ApiResultOK {
 		t.Errorf("Expected ResultadoConsulta to be 'OK', got '%s'", prices.ResultadoConsulta)
 	}
 
@@ -58,7 +58,7 @@ func TestFuelPriceAPI_FetchPricesForDate(t *testing.T) {
 		t.Fatal("FetchPricesForDate() returned nil prices")
 	}
 
-	if prices.ResultadoConsulta != "OK" {
+	if prices.ResultadoConsulta != ApiResultOK {
 		t.Errorf("Expected ResultadoConsulta to be 'OK', got '%s'", prices.ResultadoConsulta)
 	}
 

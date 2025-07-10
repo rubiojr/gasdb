@@ -19,6 +19,25 @@ import (
 	"github.com/tkrajina/gpxgo/gpx"
 )
 
+const (
+	cacheDefaultExpiry = 5 * time.Minute
+	cacheCleanupTime   = 10 * time.Minute
+	decimalBase        = 10
+	squareExponent     = 2
+)
+
+const (
+	defaultCacheExpirationMinutes      = 10
+	defaultCacheCleanupMinutes         = 30
+	defaultReducePrecisionDecimalPlace = 2
+	defaultSleepMs                     = 200
+	defaultCacheSize                   = -1024 * 1024 // negative value for pages
+	defaultPageSize                    = 4096
+	defaultMmapSize                    = 64 * 1024 * 1024 // 64MB
+	migrationCacheSize                 = 1000000000
+	migrationMmapSize                  = 268435456
+)
+
 type Storage struct {
 	db    *sql.DB
 	cache *cache.Cache
@@ -57,53 +76,18 @@ func NewStorage(dbPath string, logger *slog.Logger) (*Storage, error) {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
-	// Set PRAGMA options
-	if _, err = db.Exec("PRAGMA journal_mode = WAL;"); err != nil {
+	if err := configureSQLitePragmas(db, false, defaultCacheSize, defaultMmapSize); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error setting journal mode: %w", err)
-	}
-	if _, err = db.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting busy timeout: %w", err)
-	}
-	if _, err = db.Exec("PRAGMA synchronous = NORMAL;"); err != nil { // or OFF for migrate
-		db.Close()
-		return nil, fmt.Errorf("error setting synchronous: %w", err)
-	}
-	if _, err = db.Exec("PRAGMA cache_size = 8000;"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting cache size: %w", err)
+		return nil, err
 	}
 
-	// Set optimal page size
-	_, err = db.Exec("PRAGMA page_size = 4096;")
-	if err != nil {
+	if err := createTables(db); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error setting page size: %w", err)
-	}
-
-	// Configure memory mapping
-	_, err = db.Exec("PRAGMA mmap_size = 67108864") // 64MB
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting mmap size: %w", err)
-	}
-
-	createTableSQL := `
-	CREATE TABLE IF NOT EXISTS fuel_prices (
-		date TEXT PRIMARY KEY,
-		data JSON,
-		fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	_, err = db.Exec(createTableSQL)
-	if err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error creating table: %w", err)
+		return nil, fmt.Errorf("error creating tables: %w", err)
 	}
 
 	// Initialize the cache with default expiration of 5 minutes and cleanup interval of 10 minutes
-	c := cache.New(10*time.Minute, 30*time.Minute)
+	c := cache.New(defaultCacheExpirationMinutes*time.Minute, defaultCacheCleanupMinutes*time.Minute)
 
 	s := &Storage{
 		db:    db,
@@ -137,34 +121,19 @@ func NewStorageMigrate(dbPath string, logger *slog.Logger) (*Storage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
-	// Set PRAGMA options
-	if _, err = db.Exec("PRAGMA journal_mode = WAL"); err != nil {
+	if err := configureSQLitePragmas(db, true, migrationCacheSize, migrationMmapSize); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("error setting journal mode: %w", err)
+		return nil, err
 	}
-	if _, err = db.Exec("PRAGMA busy_timeout = 5000"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting busy timeout: %w", err)
-	}
+
+	// Additional migration-specific pragmas
 	if _, err = db.Exec("PRAGMA foreign_keys = ON"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error enabling foreign keys: %w", err)
 	}
-	if _, err = db.Exec("PRAGMA synchronous = NORMAL"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting synchronous mode: %w", err)
-	}
-	if _, err = db.Exec("PRAGMA cache_size = 1000000000"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting cache size: %w", err)
-	}
 	if _, err = db.Exec("PRAGMA temp_store = memory"); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("error setting temp store: %w", err)
-	}
-	if _, err = db.Exec("PRAGMA mmap_size = 268435456"); err != nil {
-		db.Close()
-		return nil, fmt.Errorf("error setting mmap size: %w", err)
 	}
 
 	// Create tables if they don't exist
@@ -173,7 +142,7 @@ func NewStorageMigrate(dbPath string, logger *slog.Logger) (*Storage, error) {
 		return nil, fmt.Errorf("error creating tables: %w", err)
 	}
 
-	c := cache.New(5*time.Minute, 10*time.Minute)
+	c := cache.New(cacheDefaultExpiry, cacheCleanupTime)
 
 	s := &Storage{
 		db:    db,
@@ -275,7 +244,11 @@ func (s *Storage) MigrateToHistoricPrices() error {
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	stmt, err := tx.Prepare(`
 		INSERT OR REPLACE INTO historic_prices (
@@ -307,7 +280,8 @@ func (s *Storage) MigrateToHistoricPrices() error {
 			continue
 		}
 
-		for _, station := range stationList.ListaEESSPrecio {
+		for i := range stationList.ListaEESSPrecio {
+			station := &stationList.ListaEESSPrecio[i]
 			_, err := stmt.Exec(
 				dateStr, station.IDEESS, station.CP, station.Direccion, station.Horario,
 				station.Latitud, station.Localidad, station.Longitud, station.Margen,
@@ -404,7 +378,11 @@ func (s *Storage) SavePrices(date time.Time, data []byte) error {
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	_, err = tx.Exec("INSERT OR REPLACE INTO fuel_prices (date, data) VALUES (?, ?)", dateStr, data)
 	if err != nil {
@@ -469,7 +447,7 @@ func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, e
 	cacheKey := fmt.Sprintf("nearby_prices_%f_%f_%f", lat, lng, distance)
 
 	// Log the search location
-	newLat, newLong := reduceLocationPrecision(lat, lng, 2)
+	newLat, newLong := reduceLocationPrecision(lat, lng, defaultReducePrecisionDecimalPlace)
 	err := s.LogSearchLocation(newLat, newLong, distance)
 	if err != nil {
 		// Log error but don't fail the search if logging fails
@@ -493,7 +471,8 @@ func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, e
 	}
 
 	var nearbyStations []*api.GasStation
-	for _, station := range pricesResponse.ListaEESSPrecio {
+	for i := range pricesResponse.ListaEESSPrecio {
+		station := &pricesResponse.ListaEESSPrecio[i]
 		stationLat, err := ParseLatLong(station.Latitud)
 		if err != nil {
 			continue
@@ -506,7 +485,7 @@ func (s *Storage) NearbyPrices(lat, lng, distance float64) ([]*api.GasStation, e
 
 		calculatedDistance := gpx.Distance2D(lat, lng, stationLat, stationLng, true)
 		if calculatedDistance <= distance {
-			nearbyStations = append(nearbyStations, &station)
+			nearbyStations = append(nearbyStations, station)
 		}
 	}
 
@@ -533,30 +512,34 @@ func (s *Storage) GetPricesForDate(date time.Time) (*api.GasStationList, error) 
 		return nil, fmt.Errorf("error unmarshaling data: %w", err)
 	}
 
+	// Use pointer iteration if you need to process stations here in the future:
+	// for i := range pricesResponse.ListaEESSPrecio {
+	//     station := &pricesResponse.ListaEESSPrecio[i]
+	//     // process station
+	// }
 	return &pricesResponse, nil
 }
 
 func (s *Storage) UpdateDB() error {
-	api := api.NewFuelPriceAPI()
-	pricesResponse, err := api.FetchPrices()
+	fuelAPI := api.NewFuelPriceAPI()
+	pricesResponse, err := fuelAPI.FetchPrices()
 	if err != nil {
 		return err
 	}
 
-	if pricesResponse.ResultadoConsulta != "OK" {
+	if pricesResponse.ResultadoConsulta != api.ApiResultOK {
 		return fmt.Errorf("API returned non-OK result: %s", pricesResponse.ResultadoConsulta)
 	}
 
 	jsonData, err := json.Marshal(pricesResponse)
 	if err != nil {
-		return fmt.Errorf("Error marshaling JSON: %w", err)
+		return fmt.Errorf("error marshaling JSON: %w", err)
 	}
 
 	if err := s.SavePrices(time.Now(), jsonData); err != nil {
-		return fmt.Errorf("Error saving data for today: %w", err)
+		return fmt.Errorf("error saving data: %w", err)
 	}
 
-	s.log.Debug("Successfully saved data for today")
 	return nil
 }
 
@@ -613,7 +596,7 @@ func ParseLatLong(s string) (float64, error) {
 }
 
 func (s *Storage) UpdateDBAll() error {
-	api := api.NewFuelPriceAPI()
+	fuelAPI := api.NewFuelPriceAPI()
 
 	startDate := time.Date(2007, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Now().AddDate(0, 0, -1)
@@ -621,7 +604,7 @@ func (s *Storage) UpdateDBAll() error {
 	for date := startDate; date.Before(endDate) || date.Equal(endDate); date = date.AddDate(0, 0, 1) {
 		exists, err := s.HasDate(date)
 		if err != nil {
-			s.log.Debug("Error checking if date exists", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("error checking if date exists", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
@@ -629,52 +612,52 @@ func (s *Storage) UpdateDBAll() error {
 			continue
 		}
 
-		s.log.Debug("Fetching data for", "date", date.Format("2006-01-02"))
+		s.log.Debug("fetching data for", "date", date.Format("2006-01-02"))
 
-		pricesResponse, err := api.FetchPricesForDate(date)
+		pricesResponse, err := fuelAPI.FetchPricesForDate(date)
 		if err != nil {
-			s.log.Debug("Error fetching data for", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("error fetching data for", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
-		if pricesResponse.ResultadoConsulta != "OK" {
+		if pricesResponse.ResultadoConsulta != api.ApiResultOK {
 			s.log.Debug("API returned non-OK result for", "date", date.Format("2006-01-02"), "result", pricesResponse.ResultadoConsulta)
 			continue
 		}
 
 		jsonData, err := json.Marshal(pricesResponse)
 		if err != nil {
-			s.log.Debug("Error marshaling JSON for", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("error marshaling JSON for", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
 		if err := s.SavePrices(date, jsonData); err != nil {
-			s.log.Debug("Error saving data for", "date", date.Format("2006-01-02"), "error", err)
+			s.log.Debug("error saving data for", "date", date.Format("2006-01-02"), "error", err)
 			continue
 		}
 
-		s.log.Debug("Successfully saved data for", "date", date.Format("2006-01-02"))
+		s.log.Debug("successfully saved data for", "date", date.Format("2006-01-02"))
 
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(defaultSleepMs * time.Millisecond)
 	}
 
 	// Save today's prices
-	pricesResponse, err := api.FetchPrices()
+	pricesResponse, err := fuelAPI.FetchPrices()
 	if err != nil {
 		return err
 	}
 
-	if pricesResponse.ResultadoConsulta != "OK" {
+	if pricesResponse.ResultadoConsulta != api.ApiResultOK {
 		return fmt.Errorf("API returned non-OK result: %s", pricesResponse.ResultadoConsulta)
 	}
 
 	jsonData, err := json.Marshal(pricesResponse)
 	if err != nil {
-		return fmt.Errorf("Error marshaling JSON: %w", err)
+		return fmt.Errorf("error marshaling JSON: %w", err)
 	}
 
 	if err := s.SavePrices(endDate.AddDate(0, 0, 1), jsonData); err != nil {
-		return fmt.Errorf("Error saving data for today: %w", err)
+		return fmt.Errorf("error saving data for today: %w", err)
 	}
 
 	log.Printf("Successfully saved data for today")
@@ -706,19 +689,48 @@ func (s *Storage) CreateLocationLogsTable() error {
 	return nil
 }
 
-func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (float64, float64) {
-	factor := math.Pow(10, float64(decimalPlaces))
-	return math.Round(lat*factor) / factor, math.Round(lng*factor) / factor
+func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (roundedLat, roundedLng float64) {
+	factor := math.Pow(decimalBase, float64(decimalPlaces))
+	roundedLat = math.Round(lat*factor) / factor
+	roundedLng = math.Round(lng*factor) / factor
+	return
+}
+
+func configureSQLitePragmas(db *sql.DB, forMigration bool, cacheSize, mmapSize int) error {
+	if _, err := db.Exec("PRAGMA journal_mode = WAL;"); err != nil {
+		return fmt.Errorf("error setting journal mode: %w", err)
+	}
+	if _, err := db.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
+		return fmt.Errorf("error setting busy timeout: %w", err)
+	}
+
+	syncMode := "NORMAL"
+	if forMigration {
+		syncMode = "OFF"
+	}
+	if _, err := db.Exec(fmt.Sprintf("PRAGMA synchronous = %s;", syncMode)); err != nil {
+		return fmt.Errorf("error setting synchronous: %w", err)
+	}
+
+	if _, err := db.Exec(fmt.Sprintf("PRAGMA cache_size = %d;", cacheSize)); err != nil {
+		return fmt.Errorf("error setting cache size: %w", err)
+	}
+	if _, err := db.Exec(fmt.Sprintf("PRAGMA page_size = %d;", defaultPageSize)); err != nil {
+		return fmt.Errorf("error setting page size: %w", err)
+	}
+	if _, err := db.Exec(fmt.Sprintf("PRAGMA mmap_size = %d", mmapSize)); err != nil {
+		return fmt.Errorf("error setting mmap size: %w", err)
+	}
+	return nil
 }
 
 func (s *Storage) LogSearchLocation(latitude, longitude, distance float64) error {
 	// First check if a similar location (with small tolerance) exists
-	const tolerance = 0.0001 // Approximately 10 meters
 
 	var id int64
 	var count int
 
-	newLat, newLong := reduceLocationPrecision(latitude, longitude, 2)
+	newLat, newLong := reduceLocationPrecision(latitude, longitude, defaultReducePrecisionDecimalPlace)
 	err := s.db.QueryRow(`
 		SELECT id, search_count FROM location_logs
 		WHERE latitude = ?
@@ -870,8 +882,8 @@ func (s *Storage) GetPopularLocationHeatmap() ([]PopularLocation, error) {
 
 			// Calculate distance between points
 			distance := math.Sqrt(
-				math.Pow(log.Latitude-otherLog.Latitude, 2) +
-					math.Pow(log.Longitude-otherLog.Longitude, 2))
+				math.Pow(log.Latitude-otherLog.Latitude, squareExponent) +
+					math.Pow(log.Longitude-otherLog.Longitude, squareExponent))
 
 			if distance <= clusterDistance {
 				// Merge this log into the cluster
