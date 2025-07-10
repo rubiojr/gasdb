@@ -108,46 +108,59 @@ func Home(lastUpdate *time.Time, t translations.Translations) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</label> <input type=\"text\" class=\"form-control\" id=\"location\" name=\"location\" placeholder=\"{ t.LocationPlaceholder }\"></div><p class=\"form-text\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</label> <input type=\"text\" class=\"form-control\" id=\"location\" name=\"location\" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationExample)
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationPlaceholder)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 29, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 26, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p><!-- Hidden inputs for latitude and longitude --><input type=\"hidden\" id=\"latitude\" name=\"lat\"> <input type=\"hidden\" id=\"longitude\" name=\"lng\"><div class=\"btn-group mb-3\"><button type=\"submit\" class=\"btn btn-dark\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"></div><p class=\"form-text\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(t.SearchButton)
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationExample)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 34, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 29, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button> <button type=\"button\" id=\"geolocateBtn\" class=\"btn btn-outline-dark ms-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p><!-- Hidden inputs for latitude and longitude --><input type=\"hidden\" id=\"latitude\" name=\"lat\"> <input type=\"hidden\" id=\"longitude\" name=\"lng\"><div class=\"btn-group mb-3\"><button type=\"submit\" class=\"btn btn-dark\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(t.UseLocationButton)
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(t.SearchButton)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 35, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 34, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div></div></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = '{ t.GeolocationNotSupported }';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = '{ t.RequestingLocation }';\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationFound }';\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.PermissionDenied }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationUnavailable }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationTimeout }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.UnknownError }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button> <button type=\"button\" id=\"geolocateBtn\" class=\"btn btn-outline-dark ms-2\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(t.UseLocationButton)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 35, Col: 101}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div></div></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = '{ t.GeolocationNotSupported }';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = '{ t.RequestingLocation }';\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationFound }';\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.PermissionDenied }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationUnavailable }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationTimeout }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.UnknownError }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
