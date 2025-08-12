@@ -25,6 +25,7 @@ const (
 	cacheCleanupTime   = 10 * time.Minute
 	decimalBase        = 10
 	squareExponent     = 2
+	deleteRecordsPause = 50
 )
 
 const (
@@ -34,9 +35,7 @@ const (
 	defaultSleepMs                     = 200
 	defaultCacheSize                   = -1024 * 1024 // negative value for pages
 	defaultPageSize                    = 4096
-	defaultMmapSize                    = 64 * 1024 * 1024 // 64MB
 	migrationCacheSize                 = 1000000000
-	migrationMmapSize                  = 268435456
 )
 
 type Storage struct {
@@ -77,7 +76,7 @@ func NewStorage(ctx context.Context, dbPath string, logger *slog.Logger) (*Stora
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
-	if err := configureSQLitePragmas(ctx, db, false, defaultCacheSize, defaultMmapSize); err != nil {
+	if err := configureSQLitePragmas(ctx, db, false, defaultCacheSize); err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -122,7 +121,7 @@ func NewStorageMigrate(ctx context.Context, dbPath string, logger *slog.Logger) 
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
-	if err := configureSQLitePragmas(ctx, db, true, migrationCacheSize, migrationMmapSize); err != nil {
+	if err := configureSQLitePragmas(ctx, db, true, migrationCacheSize); err != nil {
 		db.Close()
 		return nil, err
 	}
@@ -712,14 +711,10 @@ func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (roundedLat, r
 	return
 }
 
-func configureSQLitePragmas(ctx context.Context, db *sql.DB, forMigration bool, cacheSize, mmapSize int) error {
+func configureSQLitePragmas(ctx context.Context, db *sql.DB, forMigration bool, cacheSize int) error {
 	if _, err := db.ExecContext(ctx, "PRAGMA busy_timeout = 10000;"); err != nil {
 		return fmt.Errorf("error setting busy timeout: %w", err)
 	}
-
-	//if _, err := db.ExecContext(ctx, "PRAGMA locking_mode = EXCLUSIVE;"); err != nil {
-	//	return fmt.Errorf("error setting locking mode: %w", err)
-	//}
 
 	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode = WAL;"); err != nil {
 		return fmt.Errorf("error setting journal mode: %w", err)
@@ -974,7 +969,7 @@ func (s *Storage) DeleteOldRecords(ctx context.Context, daysOld int) error {
 		// Log progress and add delay every batch
 		if deletedCount%batchSize == 0 {
 			s.log.Debug("Deleted fuel_prices records", "count", deletedCount)
-			time.Sleep(50 * time.Millisecond) // Longer delay
+			time.Sleep(deleteRecordsPause * time.Millisecond) // Longer delay
 		}
 	}
 
@@ -1004,7 +999,7 @@ func (s *Storage) DeleteOldRecords(ctx context.Context, daysOld int) error {
 		// Log progress and add delay every batch
 		if deletedCount%batchSize == 0 {
 			s.log.Debug("Deleted historic_prices records", "count", deletedCount)
-			time.Sleep(50 * time.Millisecond) // Longer delay
+			time.Sleep(deleteRecordsPause * time.Millisecond) // Longer delay
 		}
 	}
 
