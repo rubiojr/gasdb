@@ -57,11 +57,25 @@ func main() {
 		defer ticker.Stop()
 
 		for {
+			log.Println("Updating prices")
 			if err := storage.UpdateDB(ctx); err != nil {
 				logger.Error("Error updating prices", "error", err)
 			} else {
 				logger.Info("Price update completed successfully")
 			}
+			log.Println("Prices deleting old records")
+			if err := storage.DeleteOldRecords(ctx, 2); err != nil {
+				logger.Error("Error deleting old records", "error", err)
+			} else {
+				logger.Info("Old records cleanup completed successfully")
+			}
+			log.Println("Prices vacuuming database")
+			if err := storage.VacuumDatabase(ctx); err != nil {
+				logger.Error("Error vacuuming database", "error", err)
+			} else {
+				logger.Info("Database vacuum completed successfully")
+			}
+
 			<-ticker.C
 		}
 	}()

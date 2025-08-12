@@ -713,11 +713,34 @@ func reduceLocationPrecision(lat, lng float64, decimalPlaces int) (roundedLat, r
 }
 
 func configureSQLitePragmas(ctx context.Context, db *sql.DB, forMigration bool, cacheSize, mmapSize int) error {
+	if _, err := db.ExecContext(ctx, "PRAGMA busy_timeout = 10000;"); err != nil {
+		return fmt.Errorf("error setting busy timeout: %w", err)
+	}
+
+	//if _, err := db.ExecContext(ctx, "PRAGMA locking_mode = EXCLUSIVE;"); err != nil {
+	//	return fmt.Errorf("error setting locking mode: %w", err)
+	//}
+
 	if _, err := db.ExecContext(ctx, "PRAGMA journal_mode = WAL;"); err != nil {
 		return fmt.Errorf("error setting journal mode: %w", err)
 	}
-	if _, err := db.ExecContext(ctx, "PRAGMA busy_timeout = 5000;"); err != nil {
-		return fmt.Errorf("error setting busy timeout: %w", err)
+
+	if _, err := db.ExecContext(ctx, "PRAGMA auto_vacuum = INCREMENTAL;"); err != nil {
+		return fmt.Errorf("error setting auto vacuum: %w", err)
+	}
+
+	// Add memory management pragmas to prevent OOM
+	if _, err := db.ExecContext(ctx, "PRAGMA temp_store = FILE;"); err != nil {
+		return fmt.Errorf("error setting temp store: %w", err)
+	}
+
+	if _, err := db.ExecContext(ctx, "PRAGMA mmap_size = 0;"); err != nil {
+		return fmt.Errorf("error disabling mmap: %w", err)
+	}
+
+	// Set a conservative memory limit (64MB)
+	if _, err := db.ExecContext(ctx, "PRAGMA soft_heap_limit = 67108864;"); err != nil {
+		return fmt.Errorf("error setting soft heap limit: %w", err)
 	}
 
 	syncMode := "NORMAL"
@@ -734,9 +757,7 @@ func configureSQLitePragmas(ctx context.Context, db *sql.DB, forMigration bool, 
 	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA page_size = %d;", defaultPageSize)); err != nil {
 		return fmt.Errorf("error setting page size: %w", err)
 	}
-	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA mmap_size = %d", mmapSize)); err != nil {
-		return fmt.Errorf("error setting mmap size: %w", err)
-	}
+	// Skip mmap setting as we disabled it above for memory management
 	return nil
 }
 
@@ -919,4 +940,84 @@ func (s *Storage) GetPopularLocationHeatmap(ctx context.Context, limit int) ([]P
 	})
 
 	return popularLocations, nil
+}
+
+func (s *Storage) DeleteOldRecords(ctx context.Context, daysOld int) error {
+	cutoffDate := time.Now().AddDate(0, 0, -daysOld).Format("2006-01-02")
+
+	// Very conservative approach - delete one record at a time
+	batchSize := 1000
+
+	s.log.Info("Starting cleanup of old records", "cutoff_date", cutoffDate)
+
+	// Delete fuel_prices one at a time to avoid memory issues
+	deletedCount := 0
+	for {
+		// Get one ROWID at a time
+		var rowid int64
+		err := s.db.QueryRowContext(ctx, "SELECT ROWID FROM fuel_prices WHERE date < ? ORDER BY ROWID LIMIT 1", cutoffDate).Scan(&rowid)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				break // No more records to delete
+			}
+			return fmt.Errorf("error querying fuel_prices ROWID: %w", err)
+		}
+
+		// Delete this record
+		_, err = s.db.ExecContext(ctx, "DELETE FROM fuel_prices WHERE ROWID = ?", rowid)
+		if err != nil {
+			return fmt.Errorf("error deleting fuel_prices record: %w", err)
+		}
+
+		deletedCount++
+
+		// Log progress and add delay every batch
+		if deletedCount%batchSize == 0 {
+			s.log.Debug("Deleted fuel_prices records", "count", deletedCount)
+			time.Sleep(50 * time.Millisecond) // Longer delay
+		}
+	}
+
+	s.log.Info("Completed fuel_prices cleanup", "deleted_count", deletedCount)
+
+	// Delete historic_prices one at a time
+	deletedCount = 0
+	for {
+		// Get one ROWID at a time
+		var rowid int64
+		err := s.db.QueryRowContext(ctx, "SELECT ROWID FROM historic_prices WHERE date < ? ORDER BY ROWID LIMIT 1", cutoffDate).Scan(&rowid)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				break // No more records to delete
+			}
+			return fmt.Errorf("error querying historic_prices ROWID: %w", err)
+		}
+
+		// Delete this record
+		_, err = s.db.ExecContext(ctx, "DELETE FROM historic_prices WHERE ROWID = ?", rowid)
+		if err != nil {
+			return fmt.Errorf("error deleting historic_prices record: %w", err)
+		}
+
+		deletedCount++
+
+		// Log progress and add delay every batch
+		if deletedCount%batchSize == 0 {
+			s.log.Debug("Deleted historic_prices records", "count", deletedCount)
+			time.Sleep(50 * time.Millisecond) // Longer delay
+		}
+	}
+
+	s.log.Info("Completed historic_prices cleanup", "deleted_count", deletedCount)
+
+	return nil
+}
+
+func (s *Storage) VacuumDatabase(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, "PRAGMA incremental_vacuum(1000)")
+	if err != nil {
+		return fmt.Errorf("error performing incremental vacuum: %w", err)
+	}
+
+	return nil
 }
