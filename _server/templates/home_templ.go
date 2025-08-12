@@ -160,7 +160,98 @@ func Home(lastUpdate *time.Time, t translations.Translations) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div></div></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = '{ t.GeolocationNotSupported }';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = '{ t.RequestingLocation }';\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationFound }';\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.PermissionDenied }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationUnavailable }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.LocationTimeout }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = '{ t.UnknownError }';\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div></div></div><!-- Translation data for JavaScript --> <div id=\"translations\" style=\"display:none;\" data-geolocation-not-supported=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(t.GeolocationNotSupported)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 43, Col: 61}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" data-requesting-location=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(t.RequestingLocation)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 44, Col: 50}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-location-found=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationFound)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 45, Col: 40}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" data-permission-denied=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(t.PermissionDenied)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 46, Col: 46}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" data-location-unavailable=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationUnavailable)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 47, Col: 52}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" data-location-timeout=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationTimeout)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 48, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" data-unknown-error=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(t.UnknownError)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 49, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\t\t\t\tconst translations = document.getElementById('translations');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = translations.dataset.geolocationNotSupported;\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = translations.dataset.requestingLocation;\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationFound;\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.permissionDenied;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationUnavailable;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationTimeout;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.unknownError;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

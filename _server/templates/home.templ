@@ -38,6 +38,16 @@ templ Home(lastUpdate *time.Time, t translations.Translations) {
 				<div id="geoStatus" class="alert alert-info" style="display:none;"></div>
 			</div>
 		</div>
+		<!-- Translation data for JavaScript -->
+		<div id="translations" style="display:none;"
+			data-geolocation-not-supported={ t.GeolocationNotSupported }
+			data-requesting-location={ t.RequestingLocation }
+			data-location-found={ t.LocationFound }
+			data-permission-denied={ t.PermissionDenied }
+			data-location-unavailable={ t.LocationUnavailable }
+			data-location-timeout={ t.LocationTimeout }
+			data-unknown-error={ t.UnknownError }>
+		</div>
 		<script>
 			document.addEventListener('DOMContentLoaded', function() {
 				const geolocateBtn = document.getElementById('geolocateBtn');
@@ -46,11 +56,12 @@ templ Home(lastUpdate *time.Time, t translations.Translations) {
 				const latInput = document.getElementById('latitude');
 				const lngInput = document.getElementById('longitude');
 				const searchForm = document.getElementById('searchForm');
+				const translations = document.getElementById('translations');
 
 				// Check if geolocation is supported
 				if (!navigator.geolocation) {
 					geolocateBtn.disabled = true;
-					geolocateBtn.textContent = '{ t.GeolocationNotSupported }';
+					geolocateBtn.textContent = translations.dataset.geolocationNotSupported;
 					return;
 				}
 
@@ -58,7 +69,7 @@ templ Home(lastUpdate *time.Time, t translations.Translations) {
 					e.preventDefault();
 
 					geoStatus.style.display = 'block';
-					geoStatus.textContent = '{ t.RequestingLocation }';
+					geoStatus.textContent = translations.dataset.requestingLocation;
 
 					navigator.geolocation.getCurrentPosition(
 						// Success callback
@@ -73,7 +84,7 @@ templ Home(lastUpdate *time.Time, t translations.Translations) {
 							// Clear the location input since we're using coordinates
 							locationInput.value = '';
 
-							geoStatus.textContent = '{ t.LocationFound }';
+							geoStatus.textContent = translations.dataset.locationFound;
 
 							// Submit the form
 							searchForm.submit();
@@ -84,16 +95,16 @@ templ Home(lastUpdate *time.Time, t translations.Translations) {
 
 							switch(error.code) {
 								case error.PERMISSION_DENIED:
-									geoStatus.textContent = '{ t.PermissionDenied }';
+									geoStatus.textContent = translations.dataset.permissionDenied;
 									break;
 								case error.POSITION_UNAVAILABLE:
-									geoStatus.textContent = '{ t.LocationUnavailable }';
+									geoStatus.textContent = translations.dataset.locationUnavailable;
 									break;
 								case error.TIMEOUT:
-									geoStatus.textContent = '{ t.LocationTimeout }';
+									geoStatus.textContent = translations.dataset.locationTimeout;
 									break;
 								default:
-									geoStatus.textContent = '{ t.UnknownError }';
+									geoStatus.textContent = translations.dataset.unknownError;
 									break;
 							}
 						},
