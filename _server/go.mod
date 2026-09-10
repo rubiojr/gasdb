@@ -2,8 +2,6 @@ module github.com/rubiojr/gasdb/_server
 
 replace github.com/rubiojr/gasdb => ../
 
-godebug tlsrsakex=1
-
 go 1.24.2
 
 require (

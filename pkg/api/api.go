@@ -4,6 +4,7 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,10 +29,27 @@ type FuelPriceAPI struct {
 
 // NewFuelPriceAPI creates a new FuelPriceAPI client with default settings.
 func NewFuelPriceAPI() *FuelPriceAPI {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+			// The government API still requires static RSA key exchange.
+			// Scope this exception to this client instead of using GODEBUG=tlsrsakex=1.
+			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+		},
+	}
+
 	return &FuelPriceAPI{
 		baseURL: "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist",
 		httpClient: &http.Client{
-			Timeout: DefaultTimeout,
+			Timeout:   DefaultTimeout,
+			Transport: transport,
 		},
 	}
 }
