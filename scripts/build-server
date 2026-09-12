@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Build the server with the latest reachable Git tag; accepts go build flags.
+# --deploy delegates the build and deployment to naked, accepting its flags.
 set -euo pipefail
+if [[ "${1:-}" == --deploy ]]; then
+  shift
+  exec "$(dirname -- "${BASH_SOURCE[0]}")/with-server-version" \
+    naked deploy "$@" .
+fi
 exec "$(dirname -- "${BASH_SOURCE[0]}")/with-server-version" \
   go build -o gasdb-server "$@" .
