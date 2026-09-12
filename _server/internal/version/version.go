@@ -1,35 +1,17 @@
 // Package version identifies the running server build.
 package version
 
-import (
-	_ "embed"
-	"runtime/debug"
-	"strings"
-)
-
-// Refresh the tag before release builds. The committed file also supports
-// building source archives without Git installed.
-//go:generate sh -c "git describe --tags --abbrev=0 > VERSION.tmp && mv VERSION.tmp VERSION"
-
-//go:embed VERSION
-var tag string
-
-// Version can be set to a release version with go build -ldflags=-X.
-// When unset, String uses the embedded Git tag, then Go's build metadata.
-var Version string
+import "runtime/debug"
 
 // String returns the release override, Git tag, or an unstamped build identifier.
 func String() string {
 	info, _ := debug.ReadBuildInfo()
-	return buildVersion(Version, tag, info)
+	return buildVersion(Version, info)
 }
 
-func buildVersion(release, tag string, info *debug.BuildInfo) string {
+func buildVersion(release string, info *debug.BuildInfo) string {
 	if release != "" {
 		return release
-	}
-	if tag = strings.TrimSpace(tag); tag != "" {
-		return tag
 	}
 	return metadataVersion(info)
 }

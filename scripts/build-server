@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Build the server with the latest reachable Git tag; accepts go build flags.
+set -euo pipefail
+exec "$(dirname -- "${BASH_SOURCE[0]}")/with-server-version" \
+  go build -o gasdb-server "$@" .

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Run a build command from _server with the current Git tag injected.
+set -euo pipefail
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../_server"
+tool="$(mktemp "${TMPDIR:-/tmp}/gasdb-build-tool.XXXXXXXX")"
+trap 'rm -f -- "$tool"' EXIT
+# Bootstrap on the host even when the requested build targets another platform.
+GOOS="$(go env GOHOSTOS)" GOARCH="$(go env GOHOSTARCH)" \
+  go build -o "$tool" ./internal/buildversion
+"$tool" "$@"

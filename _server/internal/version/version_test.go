@@ -2,7 +2,6 @@ package version
 
 import (
 	"runtime/debug"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,19 +31,7 @@ func TestBuildVersion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, buildVersion(tt.release, "", tt.info))
+			assert.Equal(t, tt.want, buildVersion(tt.release, tt.info))
 		})
 	}
-}
-
-func TestTaggedVersion(t *testing.T) {
-	info := &debug.BuildInfo{Settings: []debug.BuildSetting{
-		{Key: "vcs.revision", Value: "abcdef1234567890"},
-		{Key: "vcs.modified", Value: "true"},
-	}}
-	assert.Equal(t, "v1.2.3", buildVersion("", "v1.2.3\n", info))
-	assert.Equal(t, "v1.2.3", buildVersion("", "v1.2.3\n", nil))
-	assert.Equal(t, "v2.0.0", buildVersion("v2.0.0", "v1.2.3\n", info))
-	assert.Equal(t, "dev", buildVersion("", " \n", nil))
-	assert.Equal(t, strings.TrimSpace(tag), String())
 }

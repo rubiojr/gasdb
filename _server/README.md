@@ -17,10 +17,9 @@ A web-based interface for finding nearby fuel stations in Spain with current pri
 ### Build and Run
 
 ```bash
-cd _server
-go generate ./internal/version
-go build -o gasdb-server .
-./gasdb-server
+# From the repository root:
+scripts/build-server
+./_server/gasdb-server
 ```
 
 The server will start on `http://127.0.0.1:8080` by default.
@@ -42,11 +41,25 @@ The version is the latest Git tag reachable from the current commit, selected
 with `git describe --tags --abbrev=0` (for example, `v1.2.3`). It is embedded in
 the binary, so the deployed server does not need Git or a checkout.
 
-Run `go generate ./internal/version` before building to refresh
-`internal/version/VERSION`. The local `scripts/deploy` helper does this
-automatically and prints the selected tag, including during dry runs. Dry runs
-do not modify the version file. Plain `go build` uses the tag already recorded
-in that file, which also allows builds from source archives.
+Both `scripts/build-server` and the local `scripts/deploy` helper read the tag
+on every invocation. After creating a new tag, just build or deploy again.
+There is no version file to update, generate, or commit. With no reachable tag,
+the build uses the abbreviated commit hash.
+
+The build wrapper uses a temporary Go source overlay to inject the version.
+This works with Naked's own linker flags, leaves the checkout untouched, and
+keeps concurrent builds independent. Deployment dry runs print the selected tag.
+
+`scripts/build-server` accepts Go build flags, for example:
+
+```bash
+scripts/build-server -o /tmp/gasdb-server
+```
+
+Plain `go build` bypasses tag injection and uses Go's embedded commit metadata
+instead (or `dev` when no metadata is available), so it never reports a stale
+saved tag. Root repository tags are not automatically included in that metadata
+because `_server` is a separate Go module.
 
 To set a release version, build from `_server` with:
 
@@ -55,7 +68,7 @@ go build -ldflags "-X github.com/rubiojr/gasdb/_server/internal/version.Version=
 ./gasdb-server --version
 ```
 
-An explicit release version takes precedence over the embedded tag.
+An explicit linker version takes precedence over the injected tag.
 
 ## Usage
 
