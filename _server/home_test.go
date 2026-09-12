@@ -34,8 +34,8 @@ func TestHomePriceSummary(t *testing.T) {
 	data := api.GasStationList{
 		Fecha: "01/01/2020 12:00:00",
 		ListaEESSPrecio: []api.GasStation{
-			{IDEESS: "1", PrecioGasolina95E5: "1,200"},
-			{IDEESS: "2", PrecioGasolina95E5: "1,600"},
+			{IDEESS: "1", Provincia: "Soria", PrecioGasolina95E5: "1,200"},
+			{IDEESS: "2", Provincia: "Barcelona", PrecioGasolina95E5: "1,600"},
 		},
 	}
 	save := func() {
@@ -53,10 +53,16 @@ func TestHomePriceSummary(t *testing.T) {
 		assert.Contains(t, page, data.Fecha)
 		assert.Contains(t, page, "<td>1.200</td><td>1.400</td><td>1.600</td>")
 		assert.Contains(t, page, "<td>"+tr.NotAvailable+"</td>")
+		assert.Contains(t, page, tr.CheapestProvinces)
+		assert.Contains(t, page, tr.MostExpensiveProvinces)
+		assert.Contains(t, page, `class="province-name">SORIA</span>`)
+		assert.Contains(t, page, `class="province-amount">1.200 €</strong>`)
 		assert.Contains(t, page, `name="radius"`)
 	}
 	// Replacing today's snapshot must refresh the displayed summary, too.
 	data.ListaEESSPrecio[0].PrecioGasolina95E5 = "1,400"
 	save()
-	assert.Contains(t, render("en"), "<td>1.400</td><td>1.500</td><td>1.600</td>")
+	page := render("en")
+	assert.Contains(t, page, "<td>1.400</td><td>1.500</td><td>1.600</td>")
+	assert.Contains(t, page, `class="province-amount">1.400 €</strong>`)
 }

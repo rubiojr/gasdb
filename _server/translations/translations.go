@@ -18,16 +18,21 @@ type Translations struct {
 	GeolocationNotSupported string
 
 	// Daily nationwide price summary
-	TodayPrices             string
-	LatestPrices            string
-	PricesUnavailable       string
-	PriceSummaryDescription string
-	PriceSummaryMethod      string
-	PriceDataDate           string
-	FuelLabel               string
-	LowPrice                string
-	AveragePrice            string
-	HighPrice               string
+	TodayPrices               string
+	LatestPrices              string
+	PricesUnavailable         string
+	PriceSummaryDescription   string
+	PriceSummaryMethod        string
+	PriceDataDate             string
+	FuelLabel                 string
+	LowPrice                  string
+	AveragePrice              string
+	HighPrice                 string
+	ProvincesTitle            string
+	ProvincePricesDescription string
+	ProvincePricesUnavailable string
+	CheapestProvinces         string
+	MostExpensiveProvinces    string
 
 	// Geolocation messages
 	RequestingLocation  string

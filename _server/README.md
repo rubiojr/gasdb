@@ -106,6 +106,13 @@ The summary uses the latest stored snapshot and displays its publication date.
 It is labelled as today's prices only when that date matches the current date
 in mainland Spain. Older snapshots are labelled as the latest available prices.
 
+The province comparison shows the two cheapest and two most expensive provinces
+for the selected fuel, ranked by their unrounded average station price. It shows
+each average in €/L and the number of stations contributing to it. Missing or
+invalid prices and records without a province are excluded from the province
+ranking. Changing the fuel updates the comparison without submitting the search
+form; without JavaScript, all four fuel comparisons remain visible.
+
 ### URL Parameters
 
 The search endpoint supports direct URL access:

@@ -1,0 +1,83 @@
+package templates
+
+import (
+	"fmt"
+	"github.com/rubiojr/gasdb/_server/internal/pricesummary"
+	"github.com/rubiojr/gasdb/_server/translations"
+	"strings"
+)
+
+templ ProvincePrices(rankings pricesummary.ProvinceRankings, t translations.Translations) {
+	<section id="province-rankings" class="province-rankings" aria-labelledby="province-heading">
+		<h3 id="province-heading">{ t.ProvincesTitle }</h3>
+		<p class="province-description text-muted">{ t.ProvincePricesDescription }</p>
+		<div id="province-controls" class="province-controls" hidden>
+			<label for="province-fuel">{ t.FuelLabel }</label>
+			<select id="province-fuel" class="form-control">
+				<option value="gasolina95">{ strings.TrimSuffix(t.Gasoline95, ":") }</option>
+				<option value="gasolina98">{ strings.TrimSuffix(t.Gasoline98, ":") }</option>
+				<option value="gasoleo">{ strings.TrimSuffix(t.Diesel, ":") }</option>
+				<option value="gasoleoPremium">{ strings.TrimSuffix(t.PremiumDiesel, ":") }</option>
+			</select>
+		</div>
+		@ProvinceFuelPanel("gasolina95", t.Gasoline95, rankings.Gasoline95, t)
+		@ProvinceFuelPanel("gasolina98", t.Gasoline98, rankings.Gasoline98, t)
+		@ProvinceFuelPanel("gasoleo", t.Diesel, rankings.Diesel, t)
+		@ProvinceFuelPanel("gasoleoPremium", t.PremiumDiesel, rankings.PremiumDiesel, t)
+	</section>
+	<script>
+		(function() {
+			const rankings = document.getElementById('province-rankings');
+			const select = document.getElementById('province-fuel');
+			function update() {
+				rankings.querySelectorAll('[data-province-fuel]').forEach(function(panel) {
+					panel.hidden = panel.dataset.provinceFuel !== select.value;
+				});
+			}
+			select.addEventListener('change', update);
+			rankings.dataset.enhanced = 'true';
+			update();
+			document.getElementById('province-controls').hidden = false;
+		})();
+	</script>
+}
+
+templ ProvinceFuelPanel(fuel, label string, ranking pricesummary.ProvinceRanking, t translations.Translations) {
+	<div class="province-panel" data-province-fuel={ fuel }>
+		<h4 class="province-fuel-heading">{ strings.TrimSuffix(label, ":") }</h4>
+		if len(ranking.Cheapest) == 0 {
+			<p class="text-muted">{ t.ProvincePricesUnavailable }</p>
+		} else {
+			<div class="province-groups">
+				<div class="province-group province-cheapest">
+					<h4>{ t.CheapestProvinces }</h4>
+					@ProvincePriceList(ranking.Cheapest, t)
+				</div>
+				<div class="province-group province-expensive">
+					<h4>{ t.MostExpensiveProvinces }</h4>
+					@ProvincePriceList(ranking.MostExpensive, t)
+				</div>
+			</div>
+		}
+	</div>
+}
+
+templ ProvincePriceList(provinces []pricesummary.ProvincePrice, t translations.Translations) {
+	<ol class="province-list">
+		for _, province := range provinces {
+			<li>
+				<span class="province-name">{ province.Province }</span>
+				<div class="province-price-data">
+					<strong class="province-amount">{ fmt.Sprintf("%.3f €", province.Average) }</strong>
+					<small class="province-stations">
+						if province.Count == 1 {
+							{ t.OneStation }
+						} else {
+							{ fmt.Sprintf(t.StationCount, province.Count) }
+						}
+					</small>
+				</div>
+			</li>
+		}
+	</ol>
+}

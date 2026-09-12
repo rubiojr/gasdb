@@ -21,6 +21,7 @@ type Summary struct {
 	Date                                          string
 	Today, Available                              bool
 	Gasoline95, Gasoline98, Diesel, PremiumDiesel Prices
+	Provinces                                     ProvinceRankings
 }
 
 func Build(data *api.GasStationList, now time.Time) Summary {
@@ -35,6 +36,7 @@ func Build(data *api.GasStationList, now time.Time) Summary {
 		summary.PremiumDiesel.add(station.PrecioGasoleoPremium)
 	}
 	summary.Available = summary.Gasoline95.Count+summary.Gasoline98.Count+summary.Diesel.Count+summary.PremiumDiesel.Count > 0
+	summary.Provinces = buildProvinceRankings(data.ListaEESSPrecio)
 	return summary
 }
 

@@ -48,6 +48,7 @@ templ DailyPrices(summary pricesummary.Summary, t translations.Translations) {
 				<summary>{ t.PriceSummaryMethod }</summary>
 				<p>{ t.PriceSummaryDescription }</p>
 			</details>
+			@ProvincePrices(summary.Provinces, t)
 		}
 	</section>
 }
