@@ -26,16 +26,17 @@ func GetEnglishTranslations() Translations {
 		UnknownError:        "An unknown error occurred.",
 
 		// Results page
-		NearbyStations:   "Nearby Fuel Stations",
-		ResultsFor:       "Results for:",
-		ResultsForCoords: "Results for coordinates:",
-		SearchRadius:     "Search radius:",
-		NewSearchButton:  "New Search",
-		NoStationsFound:  "No fuel stations found within",
-		LocationNotFound: "Location not found.",
-		StationsFound:    "Found",
-		StationsWithin:   "stations within",
-		OfYourLocation:   "of your location.",
+		NearbyStations:            "Nearby Fuel Stations",
+		ResultsFor:                "Results for:",
+		ResultsForCoords:          "Results for coordinates:",
+		SearchRadius:              "Search radius:",
+		NewSearchButton:           "New Search",
+		NoStationsFound:           "No fuel stations found within",
+		LocationNotFound:          "Location not found.",
+		LocationSearchUnavailable: "Location search is temporarily unavailable. Please try again in a moment.",
+		StationsFound:             "Found",
+		StationsWithin:            "stations within",
+		OfYourLocation:            "of your location.",
 
 		// Station card
 		MapButton:        "🗺️ OSM",

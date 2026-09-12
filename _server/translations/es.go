@@ -26,16 +26,17 @@ func GetSpanishTranslations() Translations {
 		UnknownError:        "Ocurrió un error desconocido.",
 
 		// Results page
-		NearbyStations:   "Gasolineras Cercanas",
-		ResultsFor:       "Resultados para:",
-		ResultsForCoords: "Resultados para coordenadas:",
-		SearchRadius:     "Radio de búsqueda:",
-		NewSearchButton:  "Nueva Búsqueda",
-		NoStationsFound:  "No se encontraron gasolineras en un radio de",
-		LocationNotFound: "Ubicación no encontrada.",
-		StationsFound:    "Se encontraron",
-		StationsWithin:   "estaciones en un radio de",
-		OfYourLocation:   "de tu ubicación.",
+		NearbyStations:            "Gasolineras Cercanas",
+		ResultsFor:                "Resultados para:",
+		ResultsForCoords:          "Resultados para coordenadas:",
+		SearchRadius:              "Radio de búsqueda:",
+		NewSearchButton:           "Nueva Búsqueda",
+		NoStationsFound:           "No se encontraron gasolineras en un radio de",
+		LocationNotFound:          "Ubicación no encontrada.",
+		LocationSearchUnavailable: "El servicio de búsqueda de ubicaciones no está disponible temporalmente. Inténtalo de nuevo en unos momentos.",
+		StationsFound:             "Se encontraron",
+		StationsWithin:            "estaciones en un radio de",
+		OfYourLocation:            "de tu ubicación.",
 
 		// Station card
 		MapButton:        "🗺️ OSM",

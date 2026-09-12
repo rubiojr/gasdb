@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,7 +17,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/httprate"
-	"github.com/muesli/gominatim"
 	"github.com/patrickmn/go-cache"
 	"github.com/rubiojr/gasdb/_server/templates"
 	"github.com/rubiojr/gasdb/_server/translations"
@@ -30,6 +29,12 @@ const DefaultRadius = 5.0 // km
 
 func main() {
 	c := cache.New(30*time.Minute, 90*time.Minute)
+	geocoder := locationGeocoder{
+		client:   &http.Client{Timeout: 10 * time.Second},
+		endpoint: "https://nominatim.openstreetmap.org/search",
+		cache:    c,
+		interval: time.Second,
+	}
 	port := flag.Int("port", 8080, "HTTP server port")
 	dbPath := flag.String("db", "fuel_prices.db", "Path to the database file")
 	flag.Parse()
@@ -134,9 +139,15 @@ func main() {
 
 		// Handle location search or direct coordinates
 		if location != "" {
-			lat, lng, err = geocodeLocation(location, c)
+			lat, lng, err = geocoder.lookup(r.Context(), location)
 			if err != nil {
-				w.WriteHeader(http.StatusNotFound)
+				status := http.StatusNotFound
+				if !errors.Is(err, errLocationNotFound) {
+					status = http.StatusServiceUnavailable
+					t.LocationNotFound = t.LocationSearchUnavailable
+					logger.Error("Location lookup failed", "error", err)
+				}
+				w.WriteHeader(status)
 				templates.ResultsPage([]api.StationWithDistance{}, location, lat, lng, radius, err, t).Render(r.Context(), w)
 				return
 			}
@@ -221,51 +232,6 @@ func main() {
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	logger.Debug("Starting server on", "addr", addr)
 	log.Fatal(http.ListenAndServe(addr, r))
-}
-
-func gominatimResultToLatLon(result gominatim.SearchResult) (lat, lng float64, err error) {
-	lat, err = strconv.ParseFloat(result.Lat, 64)
-	if err != nil {
-		return 0, 0, fmt.Errorf("error parsing latitude: %w", err)
-	}
-
-	lng, err = strconv.ParseFloat(result.Lon, 64)
-	if err != nil {
-		return 0, 0, fmt.Errorf("error parsing longitude: %w", err)
-	}
-
-	return lat, lng, nil
-}
-
-func geocodeLocation(location string, c *cache.Cache) (lat, lng float64, err error) {
-	// Configure Nominatim geocoder
-	gominatim.SetServer("https://nominatim.openstreetmap.org/")
-	if cachedLocation, ok := c.Get(location); ok {
-		result := cachedLocation.(gominatim.SearchResult)
-		return gominatimResultToLatLon(result)
-	}
-
-	// URL encode the location query
-	encodedLocation := url.QueryEscape(location)
-
-	// Create search query
-	query := gominatim.SearchQuery{
-		Q: encodedLocation,
-	}
-
-	// Get results
-	results, err := query.Get()
-	if err != nil {
-		return 0, 0, fmt.Errorf("geocoding error: %w", err)
-	}
-
-	// Check if we have results
-	if len(results) == 0 {
-		return 0, 0, fmt.Errorf("no results found for location: %s", location)
-	}
-	c.Set(location, results[0], cache.DefaultExpiration)
-
-	return gominatimResultToLatLon(results[0])
 }
 
 func getFuelPrice(station *api.GasStation, fuelType string) float64 {

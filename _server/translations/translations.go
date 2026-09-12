@@ -25,16 +25,17 @@ type Translations struct {
 	UnknownError        string
 
 	// Results page
-	NearbyStations   string
-	ResultsFor       string
-	ResultsForCoords string
-	SearchRadius     string
-	NewSearchButton  string
-	NoStationsFound  string
-	LocationNotFound string
-	StationsFound    string
-	StationsWithin   string
-	OfYourLocation   string
+	NearbyStations            string
+	ResultsFor                string
+	ResultsForCoords          string
+	SearchRadius              string
+	NewSearchButton           string
+	NoStationsFound           string
+	LocationNotFound          string
+	LocationSearchUnavailable string
+	StationsFound             string
+	StationsWithin            string
+	OfYourLocation            string
 
 	// Station card
 	MapButton        string
