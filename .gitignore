@@ -1,3 +1,4 @@
 /fuel_*
 /db/
 coverage*
+/.octmp
