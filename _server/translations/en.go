@@ -11,11 +11,23 @@ func GetEnglishTranslations() Translations {
 		HomeHeading:             "🔎 Nearby Fuel Stations",
 		LastUpdated:             "📅 Fuel prices last updated:",
 		LocationLabel:           "Location",
-		LocationPlaceholder:     "City, province (Spain only)",
+		RadiusLabel:             "Radius",
+		LocationPlaceholder:     "City or address",
 		LocationExample:         "Example: Tibidabo, Barcelona",
 		SearchButton:            "Search",
 		UseLocationButton:       "Use My Location",
 		GeolocationNotSupported: "Geolocation not supported",
+
+		TodayPrices:             "Today's prices in Spain",
+		LatestPrices:            "Latest prices in Spain",
+		PricesUnavailable:       "Fuel prices are not available yet.",
+		PriceSummaryDescription: "Lowest, average and highest reported prices across Spain, in €/L. The average is calculated from stations reporting a price for each fuel.",
+		PriceDataDate:           "Data published:",
+		PriceSummaryMethod:      "How are prices calculated?",
+		FuelLabel:               "Fuel",
+		LowPrice:                "Low",
+		AveragePrice:            "Average",
+		HighPrice:               "High",
 
 		// Geolocation messages
 		RequestingLocation:  "Requesting your location...",
@@ -28,6 +40,7 @@ func GetEnglishTranslations() Translations {
 		// Results page
 		NearbyStations:            "Nearby Fuel Stations",
 		ResultsFor:                "Results for:",
+		ResolvedLocation:          "Location found:",
 		ResultsForCoords:          "Results for coordinates:",
 		SearchRadius:              "Search radius:",
 		NewSearchButton:           "New Search",
@@ -37,6 +50,10 @@ func GetEnglishTranslations() Translations {
 		StationsFound:             "Found",
 		StationsWithin:            "stations within",
 		OfYourLocation:            "of your location.",
+		ExpandRadiusTitle:         "Try a wider search radius",
+		SearchWithinRadius:        "Search within %d km",
+		OneStation:                "1 station",
+		StationCount:              "%d stations",
 
 		// Station card
 		MapButton:        "🗺️ OSM",
@@ -51,6 +68,9 @@ func GetEnglishTranslations() Translations {
 		NotAvailable:     "N/A",
 
 		// Footer
-		FooterCopyright: "Fuel Station Finder Spain",
+		FooterCopyright:    "Fuel Station Finder Spain",
+		DarkMode:           "Dark mode",
+		SwitchToLightTheme: "Switch to light mode",
+		SwitchToDarkTheme:  "Switch to dark mode",
 	}
 }

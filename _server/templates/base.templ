@@ -12,21 +12,96 @@ templ Base(title string, t translations.Translations) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="color-scheme" content="light dark"/>
 			<title>{ title }</title>
+			<script>
+				// Apply a saved choice before painting; otherwise CSS follows the OS.
+				try {
+					const savedTheme = localStorage.getItem('gasdb-theme');
+					if (savedTheme === 'light' || savedTheme === 'dark') {
+						document.documentElement.dataset.theme = savedTheme;
+					}
+				} catch (_) {}
+			</script>
 			<style>
 				/* TemplUI - Clean, minimal UI system */
 				:root {
-					--dark-gray: #343a40;
-					--light-gray: #f8f9fa;
-					--medium-gray: #565656;
-					--success: #198754;
+					color-scheme: light dark;
+					--dark-gray: light-dark(#343a40, #edf2f7);
+					--light-gray: light-dark(#f8f9fa, #243441);
+					--medium-gray: light-dark(#565656, #728393);
+					--success: light-dark(#198754, #79d8a8);
 					--info: #0dcaf0;
 					--warning: #ffc107;
 					--danger: #dc3545;
-					--text-dark: #212529;
-					--text-muted: #6c757d;
-					--green: #12643e;
+					--text-dark: light-dark(#212529, #e3eaf0);
+					--text-muted: light-dark(#5e6872, #a4b3c1);
+					--green: light-dark(#12643e, #79d8a8);
+					--green-hover: light-dark(#0d4d2f, #9de5bd);
+					--on-primary: light-dark(#ffffff, #10261d);
+					--control-border: light-dark(#87939d, #728393);
+					--page-bg: light-dark(#ffffff, #10171f);
+					--card-bg: light-dark(#ffffff, #18212b);
+					--surface-bg: light-dark(#f8fafb, #1b2733);
+					--subtle-border: light-dark(#e1e4e8, #344451);
+					--price-bg: light-dark(#e9eef2, #293947);
+					--price-border: light-dark(#d9e1e7, #435564);
+					--distance-bg: light-dark(#edf6ef, #1c3b30);
+					--focus-ring: light-dark(rgba(18, 100, 62, 0.18), rgba(121, 216, 168, 0.22));
+					--info-bg: light-dark(rgba(13, 202, 240, 0.1), #132f3b);
+					--info-border: light-dark(rgba(13, 202, 240, 0.4), #296176);
+					--info-text: light-dark(#055160, #9de0f1);
+					--error-bg: light-dark(rgba(220, 53, 69, 0.1), #3e2029);
+					--error-border: light-dark(rgba(220, 53, 69, 0.4), #885060);
+					--error-text: light-dark(#842029, #ffc0cb);
 					--radius: 4px;
+				}
+				:root[data-theme="light"] {
+					color-scheme: light;
+				}
+				:root[data-theme="dark"] {
+					color-scheme: dark;
+				}
+				.theme-toolbar {
+					position: absolute;
+					z-index: 1;
+					top: 1rem;
+					inset-inline: 0;
+					width: 100%;
+					max-width: 800px;
+					margin-inline: auto;
+					padding-inline: 1rem;
+					display: flex;
+					justify-content: flex-end;
+					pointer-events: none;
+				}
+				.theme-toggle {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					width: 2.75rem;
+					height: 2.75rem;
+					border: 1px solid var(--control-border);
+					border-radius: 50%;
+					background-color: var(--card-bg);
+					color: var(--dark-gray);
+					cursor: pointer;
+					pointer-events: auto;
+				}
+				.theme-toggle:hover {
+					background-color: var(--light-gray);
+				}
+				.theme-toggle[hidden], .theme-icon-sun {
+					display: none;
+				}
+				.theme-toggle[aria-pressed="true"] .theme-icon-sun {
+					display: block;
+				}
+				.theme-toggle[aria-pressed="true"] .theme-icon-moon {
+					display: none;
+				}
+				.home-screen .form-title, .results-header h1 {
+					padding-right: 3.25rem;
 				}
 
 				/* Reset & Base */
@@ -42,13 +117,14 @@ templ Base(title string, t translations.Translations) {
 					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 					line-height: 1.5;
 					color: var(--text-dark);
-					background-color: #fff;
+					background-color: var(--page-bg);
 					justify-content: center; /* Center children vertically */
 					min-height: 100%; /* Ensure it takes up at least the full height */
 				}
 
 				/* Page container for vertical layout */
 				.page-container {
+					position: relative;
 					display: flex;
 					flex-direction: column;
 					min-height: 100%; /* Use viewport height for minimum height */
@@ -129,7 +205,7 @@ templ Base(title string, t translations.Translations) {
 
 				/* Components */
 				.navbar {
-					background-color: var(--dark-gray);
+					background-color: #343a40;
 					color: white;
 					padding: 1rem 0;
 					margin-bottom: 1.5rem;
@@ -142,10 +218,83 @@ templ Base(title string, t translations.Translations) {
 				.results {
 					padding-top: 20px;
 				}
+				.results-header {
+					margin-bottom: 1.25rem;
+				}
+				.results-header h1 {
+					margin-bottom: 0.75rem;
+				}
+				.results-location {
+					display: flex;
+					flex-direction: column;
+					gap: 0.125rem;
+					overflow-wrap: anywhere;
+				}
+				.results-location > span, .results-count {
+					font-size: 0.875rem;
+				}
+				.results-toolbar {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					flex-wrap: wrap;
+					gap: 0.75rem;
+				}
+				.results-radius {
+					display: flex;
+					gap: 0.375rem;
+					margin: 0;
+					font-size: 0.875rem;
+				}
+				.results-toolbar .btn {
+					display: flex;
+					align-items: center;
+					min-height: 2.75rem;
+					font-size: 0.875rem;
+					white-space: normal;
+				}
+				.radius-suggestions {
+					margin: 1.25rem 0;
+				}
+				.radius-suggestions h2 {
+					font-size: 1rem;
+					margin-bottom: 0.75rem;
+				}
+				.radius-suggestion-list {
+					display: grid;
+					gap: 0.625rem;
+				}
+				.radius-suggestion {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					gap: 0.75rem;
+					min-height: 3rem;
+					padding: 0.75rem;
+					border: 1px solid var(--control-border);
+					border-radius: 8px;
+					background-color: var(--card-bg);
+					color: var(--text-dark);
+					font-size: 0.9375rem;
+					text-decoration: none;
+				}
+				.radius-suggestion:first-child {
+					border-color: var(--green);
+					background-color: var(--distance-bg);
+				}
+				.radius-suggestion:hover {
+					border-color: var(--green);
+					background-color: var(--light-gray);
+				}
+				.radius-suggestion-count {
+					color: var(--text-muted);
+					font-size: 0.8125rem;
+					white-space: nowrap;
+				}
 
 				.form {
 				    padding-top: 100px;
-					background-color: white;
+					background-color: transparent;
 					margin-bottom: 1rem;
 				}
 				.form-body {
@@ -154,11 +303,28 @@ templ Base(title string, t translations.Translations) {
 				.form-title {
 					margin-bottom: 0.75rem;
 				}
+				.home-screen {
+					padding-top: clamp(2rem, 7vh, 5rem);
+				}
+				.home-updated time {
+					white-space: nowrap;
+				}
+				.home-screen .form-text {
+					font-size: 0.875rem;
+					color: var(--text-muted);
+				}
+				.search-actions {
+					display: flex;
+					gap: 0.625rem;
+				}
+				.search-actions .btn {
+					min-height: 2.75rem;
+				}
 
 				.card {
 					border: 1px solid var(--medium-gray);
 					border-radius: var(--radius);
-					background-color: white;
+					background-color: var(--card-bg);
 					margin-bottom: 1rem;
 				}
 				.card-body {
@@ -184,17 +350,33 @@ templ Base(title string, t translations.Translations) {
 					margin-bottom: 1rem;
 				}
 				.alert-info {
-					background-color: rgba(13, 202, 240, 0.1);
-					border: 1px solid rgba(13, 202, 240, 0.4);
-					color: #055160;
+					background-color: var(--info-bg);
+					border: 1px solid var(--info-border);
+					color: var(--info-text);
 				}
 				.alert-error {
-					background-color: rgba(220, 53, 69, 0.1);
-					border: 1px solid rgba(220, 53, 69, 0.4);
-					color: #055160;
+					background-color: var(--error-bg);
+					border: 1px solid var(--error-border);
+					color: var(--error-text);
 				}
 
 				/* Form elements */
+				.search-fields {
+					display: flex;
+					align-items: flex-end;
+					gap: 0.75rem;
+				}
+				.location-field {
+					flex: 1;
+					min-width: 0;
+				}
+				.radius-field {
+					flex: 0 0 6rem;
+				}
+				.search-fields .form-control {
+					height: 2.5rem;
+					font-family: inherit;
+				}
 				.form-label {
 					margin-bottom: 0.5rem;
 					display: block;
@@ -207,15 +389,19 @@ templ Base(title string, t translations.Translations) {
 					font-size: 1rem;
 					line-height: 1.5;
 					color: var(--text-dark);
-					background-color: #fff;
-					border: 1px solid var(--medium-gray);
+					background-color: var(--card-bg);
+					border: 1px solid var(--control-border);
 					border-radius: var(--radius);
 					transition: border-color 0.15s ease-in-out;
 				}
 				.form-control:focus {
 					outline: none;
-					border-color: var(--dark-gray);
-					box-shadow: 0 0 0 0.25rem rgba(52, 58, 64, 0.25);
+					border-color: var(--green);
+					box-shadow: 0 0 0 0.25rem var(--focus-ring);
+				}
+				.form-control::placeholder {
+					color: var(--text-muted);
+					opacity: 1;
 				}
 
 				/* Buttons */
@@ -232,34 +418,31 @@ templ Base(title string, t translations.Translations) {
 					font-size: 1rem;
 					line-height: 1.5;
 					border-radius: var(--radius);
-					transition: all 0.15s ease-in-out;
+					transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
 					cursor: pointer;
 					text-decoration: none;
 				}
-				.btn-dark {
-					background-color: var(--medium-gray);
-					border-color: var(--dark-gray);
-					color: white;
+				.btn:focus-visible, .theme-toggle:focus-visible, .radius-suggestion:focus-visible {
+					outline: 2px solid var(--green);
+					outline-offset: 3px;
 				}
-				.btn-dark:hover {
-					background-color: #23272b;
+				.btn-primary {
+					background-color: var(--green);
+					border-color: var(--green);
+					color: var(--on-primary);
 				}
-				.btn-map {
-					background-color: var(--medium-gray);
-					border-color: var(--dark-gray);
-					color: white;
+				.btn-primary:hover {
+					background-color: var(--green-hover);
+					border-color: var(--green-hover);
 				}
-				.btn-map:hover {
-					background-color: #23272b;
-				}
-				.btn-outline-dark {
+				.btn-map, .btn-outline-dark {
 					color: var(--dark-gray);
-					border-color: var(--dark-gray);
-					background-color: transparent;
+					border-color: var(--control-border);
+					background-color: var(--card-bg);
 				}
-				.btn-outline-dark:hover {
-					color: #fff;
-					background-color: var(--dark-gray);
+				.btn-map:hover, .btn-outline-dark:hover {
+					border-color: var(--text-muted);
+					background-color: var(--light-gray);
 				}
 				.btn-sm {
 					padding: 0.10rem 0.50rem;
@@ -269,9 +452,128 @@ templ Base(title string, t translations.Translations) {
 				/* Custom components */
 				.station-card {
 					margin-bottom: 1rem;
+					border-color: var(--subtle-border);
+					border-radius: 12px;
+				}
+				.station-heading {
+					display: flex;
+					align-items: flex-start;
+					justify-content: space-between;
+					gap: 0.75rem;
+				}
+				.station-name {
+					min-width: 0;
+					font-size: 1.125rem;
+					line-height: 1.35;
+					overflow-wrap: anywhere;
+				}
+				.station-distance {
+					flex-shrink: 0;
+					padding: 0.25rem 0.5rem;
+					border-radius: 999px;
+					background-color: var(--distance-bg);
+					color: var(--green);
+					font-size: 0.75rem;
+					font-weight: 600;
+					white-space: nowrap;
+				}
+				.station-address {
+					margin: 0.5rem 0 1rem;
+					font-size: 0.875rem;
+					overflow-wrap: anywhere;
+				}
+				.station-prices {
+					display: grid;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: 0.5rem;
+				}
+				.station-price {
+					padding: 0.625rem 0.75rem;
+					background-color: var(--price-bg);
+					box-shadow: inset 0 0 0 1px var(--price-border);
+					border-radius: 8px;
+				}
+				.station-price dt {
+					font-size: 0.8125rem;
+					color: var(--text-muted);
+				}
+				.station-price dd {
+					margin-top: 0.125rem;
+					font-size: 1.0625rem;
+					font-weight: 600;
+					font-variant-numeric: tabular-nums;
+				}
+				.station-map-links {
+					display: grid;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: 0.5rem;
+					margin-top: 1rem;
+				}
+				.station-map-links .btn {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					min-height: 2.75rem;
+					border-radius: 8px;
+					font-size: 0.875rem;
+					white-space: normal;
 				}
 				.price-item {
 					margin-bottom: 0rem;
+				}
+
+				/* Daily price summary */
+				.daily-prices {
+					border-top: 1px solid var(--subtle-border);
+					padding-top: 1.25rem;
+				}
+				.daily-prices h2 {
+					font-size: 1.1rem;
+					margin-bottom: 0.5rem;
+				}
+				.price-summary-header {
+					display: flex;
+					align-items: baseline;
+					justify-content: space-between;
+					gap: 0.5rem;
+				}
+				.price-unit {
+					flex-shrink: 0;
+					font-size: 0.8rem;
+					font-weight: 600;
+					color: var(--text-muted);
+				}
+				.price-summary-note {
+					margin-top: 0.75rem;
+					font-size: 0.8125rem;
+					color: var(--text-muted);
+				}
+				.price-summary-note summary {
+					cursor: pointer;
+					padding: 0.5rem 0;
+				}
+				.price-summary-note p {
+					margin: 0.5rem 0 0;
+				}
+				.price-table-scroll {
+					overflow-x: auto;
+				}
+				.price-table {
+					width: 100%;
+					border-collapse: collapse;
+					font-size: 0.9rem;
+					font-variant-numeric: tabular-nums;
+				}
+				.price-table th, .price-table td {
+					padding: 0.5rem;
+					text-align: right;
+					border-bottom: 1px solid var(--subtle-border);
+				}
+				.price-table th:first-child {
+					text-align: left;
+				}
+				.price-table tbody th {
+					font-weight: 500;
 				}
 
 				/* Footer styles */
@@ -289,15 +591,143 @@ templ Base(title string, t translations.Translations) {
 				}
 
 				/* Responsive adjustments */
+				@media (min-width: 640px) {
+					.station-prices {
+						grid-template-columns: repeat(4, minmax(0, 1fr));
+					}
+					.station-map-links {
+						max-width: 20rem;
+						margin-left: auto;
+					}
+				}
 				@media (max-width: 768px) {
 					.col-md-6 {
 						flex: 0 0 100%;
+					}
+				}
+				@media (max-width: 480px) {
+					.results {
+						padding-top: 1.5rem;
+					}
+					.results-header h1 {
+						font-size: 1.5rem;
+						line-height: 1.25;
+						letter-spacing: -0.025em;
+					}
+					.station-card .card-body {
+						padding: 0.875rem;
+					}
+					.station-heading {
+						gap: 0.5rem;
+					}
+					.station-name {
+						font-size: 1rem;
+					}
+					.home-screen {
+						padding-top: 1.5rem;
+					}
+					.home-screen .form-body {
+						padding: 0;
+					}
+					.home-screen .form-title {
+						font-size: 1.5rem;
+						line-height: 1.25;
+						letter-spacing: -0.025em;
+						margin-bottom: 0.5rem;
+					}
+					.home-updated {
+						font-size: 0.9375rem;
+					}
+					.search-fields {
+						gap: 0.5rem;
+					}
+					.radius-field {
+						flex-basis: 5.5rem;
+					}
+					.home-screen .form-label {
+						font-size: 0.875rem;
+						margin-bottom: 0.375rem;
+					}
+					.home-screen .form-control {
+						height: 3rem;
+						border-radius: 8px;
+						padding-left: 0.625rem;
+						padding-right: 0.625rem;
+					}
+					.search-actions {
+						display: grid;
+						grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+						gap: 0.5rem;
+					}
+					.search-actions .btn {
+						min-height: 3rem;
+						border-radius: 8px;
+						font-size: 0.9375rem;
+						white-space: normal;
+					}
+					.daily-prices {
+						margin-top: 1.5rem;
+						padding: 0.875rem;
+						border: 1px solid var(--subtle-border);
+						border-radius: 12px;
+						background-color: var(--surface-bg);
+					}
+					.daily-prices h2 {
+						font-size: 1rem;
+					}
+					.price-data-date {
+						font-size: 0.875rem;
+					}
+					.price-table {
+						table-layout: fixed;
+						font-size: 0.8125rem;
+					}
+					.price-table th, .price-table td {
+						padding: 0.625rem 0.25rem;
+					}
+					.price-table th:first-child {
+						width: 34%;
+						padding-left: 0;
+					}
+					.price-table thead th {
+						font-size: 0.75rem;
+					}
+					.price-table th:last-child, .price-table td:last-child {
+						padding-right: 0;
+					}
+					.price-table tbody td {
+						white-space: nowrap;
+					}
+					.footer {
+						padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+						font-size: 0.75rem;
+						text-align: center;
 					}
 				}
 			</style>
 		</head>
 		<body>
 			<div class="page-container">
+				<div class="theme-toolbar">
+					<button
+						type="button"
+						id="theme-toggle"
+						class="theme-toggle"
+						aria-label={ t.DarkMode }
+						aria-pressed="false"
+						data-light-label={ t.SwitchToLightTheme }
+						data-dark-label={ t.SwitchToDarkTheme }
+						hidden
+					>
+						<svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+						</svg>
+						<svg class="theme-icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+							<circle cx="12" cy="12" r="4"></circle>
+							<path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
+						</svg>
+					</button>
+				</div>
 				<div class="container">
 					{ children... }
 				</div>
@@ -305,6 +735,37 @@ templ Base(title string, t translations.Translations) {
 					<p>© { time.Now().Year() } { t.FooterCopyright } · { version.String() }</p>
 				</footer>
 			</div>
+			<script>
+				(function() {
+					const root = document.documentElement;
+					const button = document.getElementById('theme-toggle');
+					const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+					const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : systemTheme.matches;
+					function updateButton() {
+						const dark = isDark();
+						button.setAttribute('aria-pressed', String(dark));
+						button.title = dark ? button.dataset.lightLabel : button.dataset.darkLabel;
+					}
+					button.addEventListener('click', function() {
+						const theme = isDark() ? 'light' : 'dark';
+						root.dataset.theme = theme;
+						try { localStorage.setItem('gasdb-theme', theme); } catch (_) {}
+						updateButton();
+					});
+					systemTheme.addEventListener('change', updateButton);
+					window.addEventListener('storage', function(event) {
+						if (event.key !== 'gasdb-theme' && event.key !== null) return;
+						if (event.newValue === 'light' || event.newValue === 'dark') {
+							root.dataset.theme = event.newValue;
+						} else {
+							delete root.dataset.theme;
+						}
+						updateButton();
+					});
+					updateButton();
+					button.hidden = false;
+				})();
+			</script>
 		</body>
 	</html>
 }

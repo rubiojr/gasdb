@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/httprate"
 	"github.com/patrickmn/go-cache"
+	"github.com/rubiojr/gasdb/_server/internal/search"
 	"github.com/rubiojr/gasdb/_server/internal/version"
 	"github.com/rubiojr/gasdb/_server/templates"
 	"github.com/rubiojr/gasdb/_server/translations"
@@ -105,11 +106,7 @@ func main() {
 		lang := translations.GetLanguageFromQuery(r.URL.Query().Get("lang"))
 		t := translations.GetTranslations(lang)
 
-		lastUpdate, err := storage.GetLastUpdateDate(r.Context())
-		if err != nil {
-			logger.Error("Error getting last update date", "error", err)
-		}
-		templates.Home(lastUpdate, t).Render(r.Context(), w)
+		renderHome(w, r, storage, logger.Logger, t)
 	})
 
 	r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +124,7 @@ func main() {
 		radiusStr := query.Get("radius")
 
 		var lat, lng, radius float64
+		var resolvedLocation string
 		var err error
 
 		// Set default radius if not provided or invalid
@@ -146,7 +144,7 @@ func main() {
 
 		// Handle location search or direct coordinates
 		if location != "" {
-			lat, lng, err = geocoder.lookup(r.Context(), location)
+			place, err := geocoder.lookup(r.Context(), location)
 			if err != nil {
 				status := http.StatusNotFound
 				if !errors.Is(err, errLocationNotFound) {
@@ -155,9 +153,10 @@ func main() {
 					logger.Error("Location lookup failed", "error", err)
 				}
 				w.WriteHeader(status)
-				templates.ResultsPage([]api.StationWithDistance{}, location, lat, lng, radius, err, t).Render(r.Context(), w)
+				templates.ResultsPage([]api.StationWithDistance{}, location, "", lat, lng, radius, err, nil, t).Render(r.Context(), w)
 				return
 			}
+			lat, lng, resolvedLocation = place.lat, place.lng, place.name
 		} else {
 			// Try to parse latitude and longitude
 			if latStr != "" && lngStr != "" {
@@ -174,11 +173,7 @@ func main() {
 				}
 			} else {
 				// If neither location nor coordinates are provided, show the home page
-				lastUpdate, err := storage.GetLastUpdateDate(r.Context())
-				if err != nil {
-					logger.Error("Error getting last update date", "error", err)
-				}
-				templates.Home(lastUpdate, t).Render(r.Context(), w)
+				renderHome(w, r, storage, logger.Logger, t)
 				return
 			}
 		}
@@ -232,7 +227,17 @@ func main() {
 			return stations[i].Distance < stations[j].Distance
 		})
 
-		templates.ResultsPage(stations, location, lat, lng, radius, nil, t).Render(r.Context(), w)
+		var suggestions []search.RadiusSuggestion
+		if len(stations) == 0 {
+			// Use the cached snapshot instead of logging extra nearby searches.
+			prices, err := storage.GetLastPrices(r.Context())
+			if err != nil {
+				logger.Error("Error getting wider-radius suggestions", "error", err)
+			} else {
+				suggestions = search.SuggestRadii(prices.ListaEESSPrecio, lat, lng, radius, query)
+			}
+		}
+		templates.ResultsPage(stations, location, resolvedLocation, lat, lng, radius, nil, suggestions, t).Render(r.Context(), w)
 	})
 
 	// Start server

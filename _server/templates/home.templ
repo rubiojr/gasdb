@@ -2,40 +2,53 @@ package templates
 
 import (
 	"time"
+	"github.com/rubiojr/gasdb/_server/internal/pricesummary"
 	"github.com/rubiojr/gasdb/_server/translations"
 )
 
-templ Home(lastUpdate *time.Time, t translations.Translations) {
+templ Home(lastUpdate *time.Time, summary pricesummary.Summary, t translations.Translations) {
 	@Base(t.HomeTitle, t) {
-		<div class="form">
+		<div class="form home-screen">
 			<div class="form-body">
-				<h1 class="form-title mb-4">{ t.HomeHeading }</h1>
+				<h1 class="form-title">{ t.HomeHeading }</h1>
 				if lastUpdate != nil {
-					<p class="text-muted mb-3">
-						<small>{ t.LastUpdated } { lastUpdate.Format("2006-01-02") }</small>
+					<p class="home-updated text-muted mb-3">
+						<small>{ t.LastUpdated } <time datetime={ lastUpdate.Format("2006-01-02") }>{ lastUpdate.Format("2006-01-02") }</time></small>
 					</p>
 				}
 				<form action="/search" method="get" id="searchForm">
-					<div class="mb-3">
-						<label for="location" class="form-label">{ t.LocationLabel }</label>
-						<input
-							type="text"
-							class="form-control"
-							id="location"
-							name="location"
-							placeholder={ t.LocationPlaceholder }
-						/>
+					<div class="search-fields mb-3">
+						<div class="location-field">
+							<label for="location" class="form-label">{ t.LocationLabel }</label>
+							<input
+								type="text"
+								class="form-control"
+								id="location"
+								name="location"
+								placeholder={ t.LocationPlaceholder }
+							/>
+						</div>
+						<div class="radius-field">
+							<label for="radius" class="form-label">{ t.RadiusLabel }</label>
+							<select id="radius" name="radius" class="form-control">
+								<option value="5" selected>5 km</option>
+								<option value="10">10 km</option>
+								<option value="25">25 km</option>
+								<option value="50">50 km</option>
+							</select>
+						</div>
 					</div>
 					<p class="form-text">{ t.LocationExample }</p>
 					<!-- Hidden inputs for latitude and longitude -->
 					<input type="hidden" id="latitude" name="lat"/>
 					<input type="hidden" id="longitude" name="lng"/>
-					<div class="btn-group mb-3">
-						<button type="submit" class="btn btn-dark">{ t.SearchButton }</button>
-						<button type="button" id="geolocateBtn" class="btn btn-outline-dark ms-2">{ t.UseLocationButton }</button>
+					<div class="search-actions mb-3">
+						<button type="submit" class="btn btn-primary">{ t.SearchButton }</button>
+						<button type="button" id="geolocateBtn" class="btn btn-outline-dark">{ t.UseLocationButton }</button>
 					</div>
 				</form>
 				<div id="geoStatus" class="alert alert-info" style="display:none;"></div>
+				@DailyPrices(summary, t)
 			</div>
 		</div>
 		<!-- Translation data for JavaScript -->

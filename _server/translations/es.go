@@ -11,11 +11,23 @@ func GetSpanishTranslations() Translations {
 		HomeHeading:             "🔎 Gasolineras Cercanas",
 		LastUpdated:             "📅 Precios actualizados el:",
 		LocationLabel:           "Ubicación",
-		LocationPlaceholder:     "Ciudad, provincia (solo España)",
+		RadiusLabel:             "Radio",
+		LocationPlaceholder:     "Ciudad o dirección",
 		LocationExample:         "Ejemplo: Tibidabo, Barcelona",
 		SearchButton:            "Buscar",
 		UseLocationButton:       "Usar Mi Ubicación",
 		GeolocationNotSupported: "Geolocalización no soportada",
+
+		TodayPrices:             "Precios de hoy en España",
+		LatestPrices:            "Últimos precios en España",
+		PricesUnavailable:       "Los precios de los carburantes todavía no están disponibles.",
+		PriceSummaryDescription: "Precios mínimos, medios y máximos en España, en €/L. La media se calcula entre las gasolineras que publican un precio para cada carburante.",
+		PriceDataDate:           "Datos publicados:",
+		PriceSummaryMethod:      "¿Cómo se calculan los precios?",
+		FuelLabel:               "Carburante",
+		LowPrice:                "Mínimo",
+		AveragePrice:            "Media",
+		HighPrice:               "Máximo",
 
 		// Geolocation messages
 		RequestingLocation:  "Obteniendo tu ubicación...",
@@ -28,6 +40,7 @@ func GetSpanishTranslations() Translations {
 		// Results page
 		NearbyStations:            "Gasolineras Cercanas",
 		ResultsFor:                "Resultados para:",
+		ResolvedLocation:          "Ubicación encontrada:",
 		ResultsForCoords:          "Resultados para coordenadas:",
 		SearchRadius:              "Radio de búsqueda:",
 		NewSearchButton:           "Nueva Búsqueda",
@@ -37,6 +50,10 @@ func GetSpanishTranslations() Translations {
 		StationsFound:             "Se encontraron",
 		StationsWithin:            "estaciones en un radio de",
 		OfYourLocation:            "de tu ubicación.",
+		ExpandRadiusTitle:         "Ampliar el radio de búsqueda",
+		SearchWithinRadius:        "Buscar en %d km",
+		OneStation:                "1 gasolinera",
+		StationCount:              "%d gasolineras",
 
 		// Station card
 		MapButton:        "🗺️ OSM",
@@ -51,6 +68,9 @@ func GetSpanishTranslations() Translations {
 		NotAvailable:     "N/D",
 
 		// Footer
-		FooterCopyright: "Buscador de Gasolineras España",
+		FooterCopyright:    "Buscador de Gasolineras España",
+		DarkMode:           "Modo oscuro",
+		SwitchToLightTheme: "Cambiar a modo claro",
+		SwitchToDarkTheme:  "Cambiar a modo oscuro",
 	}
 }

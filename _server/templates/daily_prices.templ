@@ -1,0 +1,68 @@
+package templates
+
+import (
+	"fmt"
+	"github.com/rubiojr/gasdb/_server/internal/pricesummary"
+	"github.com/rubiojr/gasdb/_server/translations"
+)
+
+templ DailyPrices(summary pricesummary.Summary, t translations.Translations) {
+	<section class="daily-prices mt-3" aria-labelledby="daily-prices-heading">
+		<div class="price-summary-header">
+			<h2 id="daily-prices-heading">
+				if summary.Today {
+					{ t.TodayPrices }
+				} else {
+					{ t.LatestPrices }
+				}
+			</h2>
+			if summary.Available {
+				<span class="price-unit">€/L</span>
+			}
+		</div>
+		if !summary.Available {
+			<p class="text-muted">{ t.PricesUnavailable }</p>
+		} else {
+			if summary.Date != "" {
+				<p class="price-data-date text-muted mb-2"><small>{ t.PriceDataDate } { summary.Date }</small></p>
+			}
+			<div class="price-table-scroll">
+				<table class="price-table">
+					<thead>
+						<tr>
+							<th scope="col">{ t.FuelLabel }</th>
+							<th scope="col">{ t.LowPrice }</th>
+							<th scope="col">{ t.AveragePrice }</th>
+							<th scope="col">{ t.HighPrice }</th>
+						</tr>
+					</thead>
+					<tbody>
+						@DailyPriceRow(t.Gasoline95, summary.Gasoline95, t)
+						@DailyPriceRow(t.Gasoline98, summary.Gasoline98, t)
+						@DailyPriceRow(t.Diesel, summary.Diesel, t)
+						@DailyPriceRow(t.PremiumDiesel, summary.PremiumDiesel, t)
+					</tbody>
+				</table>
+			</div>
+			<details class="price-summary-note">
+				<summary>{ t.PriceSummaryMethod }</summary>
+				<p>{ t.PriceSummaryDescription }</p>
+			</details>
+		}
+	</section>
+}
+
+templ DailyPriceRow(fuel string, prices pricesummary.Prices, t translations.Translations) {
+	<tr>
+		<th scope="row">{ fuel }</th>
+		if prices.Count > 0 {
+			<td>{ fmt.Sprintf("%.3f", prices.Low) }</td>
+			<td>{ fmt.Sprintf("%.3f", prices.Average) }</td>
+			<td>{ fmt.Sprintf("%.3f", prices.High) }</td>
+		} else {
+			<td>{ t.NotAvailable }</td>
+			<td>{ t.NotAvailable }</td>
+			<td>{ t.NotAvailable }</td>
+		}
+	</tr>
+}

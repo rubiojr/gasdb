@@ -78,11 +78,33 @@ An explicit linker version takes precedence over the injected tag.
 2. Search by location name (e.g., "Tibidabo, Barcelona") or use your current location
 3. View nearby fuel stations with current prices and distances
 
+The interface follows the operating system's light or dark appearance by
+default. The sun/moon button at the top right switches themes and remembers
+your choice in this browser, including when navigating between search and results.
+
 ### Search Options
 
 - **Location Search**: Enter city, neighborhood, or address
+- **Resolved Location**: Results show the matched town/city and province alongside your original search. If structured address details are unavailable, the geocoder's full place name is shown instead.
 - **Geolocation**: Click "Use My Location" for GPS-based search
-- **Radius**: Default 3km search radius (can be customized via URL parameters)
+- **Radius**: Choose 5, 10, 25, or 50 km in the search form (default: 5 km). Applies to both location-name and GPS searches.
+
+When a location is found but there are no nearby stations, results offer wider
+radii up to 50 km with actual station counts from the stored price snapshot.
+Only options that add stations are shown. Each link preserves the location,
+coordinates, language, and fuel selection while changing the radius. Lookup
+failures do not produce radius suggestions.
+
+### Daily Price Summary
+
+The home page lists the lowest, average, and highest reported prices across
+Spain for gasoline 95 E5, gasoline 98 E5, diesel A, and premium diesel, in €/L
+with three decimal places. Each average uses only stations reporting a valid,
+positive price for that fuel; missing prices are not treated as zero.
+
+The summary uses the latest stored snapshot and displays its publication date.
+It is labelled as today's prices only when that date matches the current date
+in mainland Spain. Older snapshots are labelled as the latest available prices.
 
 ### URL Parameters
 
@@ -96,7 +118,7 @@ The search endpoint supports direct URL access:
 Parameters:
 - `location`: Location name to geocode
 - `lat`, `lng`: Direct coordinates (decimal degrees)
-- `radius`: Search radius in kilometers (default: 3)
+- `radius`: Search radius in kilometers (default: 5)
 
 ## Architecture
 

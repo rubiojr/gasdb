@@ -9,11 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/rubiojr/gasdb/_server/internal/pricesummary"
 	"github.com/rubiojr/gasdb/_server/translations"
 	"time"
 )
 
-func Home(lastUpdate *time.Time, t translations.Translations) templ.Component {
+func Home(lastUpdate *time.Time, summary pricesummary.Summary, t translations.Translations) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -46,14 +47,14 @@ func Home(lastUpdate *time.Time, t translations.Translations) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form\"><div class=\"form-body\"><h1 class=\"form-title mb-4\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form home-screen\"><div class=\"form-body\"><h1 class=\"form-title\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(t.HomeHeading)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 12, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 13, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -64,194 +65,228 @@ func Home(lastUpdate *time.Time, t translations.Translations) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if lastUpdate != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"text-muted mb-3\"><small>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"home-updated text-muted mb-3\"><small>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(t.LastUpdated)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 15, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 16, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <time datetime=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(lastUpdate.Format("2006-01-02"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 15, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 16, Col: 79}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</small></p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(lastUpdate.Format("2006-01-02"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 16, Col: 115}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</time></small></p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form action=\"/search\" method=\"get\" id=\"searchForm\"><div class=\"mb-3\"><label for=\"location\" class=\"form-label\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationLabel)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 20, Col: 64}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</label> <input type=\"text\" class=\"form-control\" id=\"location\" name=\"location\" placeholder=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<form action=\"/search\" method=\"get\" id=\"searchForm\"><div class=\"search-fields mb-3\"><div class=\"location-field\"><label for=\"location\" class=\"form-label\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationPlaceholder)
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 26, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 22, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"></div><p class=\"form-text\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</label> <input type=\"text\" class=\"form-control\" id=\"location\" name=\"location\" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationExample)
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationPlaceholder)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 29, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 28, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p><!-- Hidden inputs for latitude and longitude --><input type=\"hidden\" id=\"latitude\" name=\"lat\"> <input type=\"hidden\" id=\"longitude\" name=\"lng\"><div class=\"btn-group mb-3\"><button type=\"submit\" class=\"btn btn-dark\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"></div><div class=\"radius-field\"><label for=\"radius\" class=\"form-label\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(t.SearchButton)
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(t.RadiusLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 34, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 32, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button> <button type=\"button\" id=\"geolocateBtn\" class=\"btn btn-outline-dark ms-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</label> <select id=\"radius\" name=\"radius\" class=\"form-control\"><option value=\"5\" selected>5 km</option> <option value=\"10\">10 km</option> <option value=\"25\">25 km</option> <option value=\"50\">50 km</option></select></div></div><p class=\"form-text\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(t.UseLocationButton)
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationExample)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 35, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 41, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div></div></div><!-- Translation data for JavaScript --> <div id=\"translations\" style=\"display:none;\" data-geolocation-not-supported=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p><!-- Hidden inputs for latitude and longitude --><input type=\"hidden\" id=\"latitude\" name=\"lat\"> <input type=\"hidden\" id=\"longitude\" name=\"lng\"><div class=\"search-actions mb-3\"><button type=\"submit\" class=\"btn btn-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(t.GeolocationNotSupported)
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(t.SearchButton)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 43, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 46, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" data-requesting-location=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</button> <button type=\"button\" id=\"geolocateBtn\" class=\"btn btn-outline-dark\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(t.RequestingLocation)
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(t.UseLocationButton)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 44, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 47, Col: 96}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-location-found=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</button></div></form><div id=\"geoStatus\" class=\"alert alert-info\" style=\"display:none;\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = DailyPrices(summary, t).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div><!-- Translation data for JavaScript --> <div id=\"translations\" style=\"display:none;\" data-geolocation-not-supported=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationFound)
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(t.GeolocationNotSupported)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 45, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 56, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" data-permission-denied=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" data-requesting-location=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(t.PermissionDenied)
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(t.RequestingLocation)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 46, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 57, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" data-location-unavailable=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" data-location-found=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationUnavailable)
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationFound)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 47, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 58, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" data-location-timeout=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" data-permission-denied=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationTimeout)
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(t.PermissionDenied)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 48, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 59, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" data-unknown-error=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" data-location-unavailable=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(t.UnknownError)
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationUnavailable)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 49, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 60, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\t\t\t\tconst translations = document.getElementById('translations');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = translations.dataset.geolocationNotSupported;\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = translations.dataset.requestingLocation;\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationFound;\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.permissionDenied;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationUnavailable;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationTimeout;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.unknownError;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" data-location-timeout=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(t.LocationTimeout)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 61, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" data-unknown-error=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var19 string
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(t.UnknownError)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `home.templ`, Line: 62, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"></div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst geolocateBtn = document.getElementById('geolocateBtn');\n\t\t\t\tconst geoStatus = document.getElementById('geoStatus');\n\t\t\t\tconst locationInput = document.getElementById('location');\n\t\t\t\tconst latInput = document.getElementById('latitude');\n\t\t\t\tconst lngInput = document.getElementById('longitude');\n\t\t\t\tconst searchForm = document.getElementById('searchForm');\n\t\t\t\tconst translations = document.getElementById('translations');\n\n\t\t\t\t// Check if geolocation is supported\n\t\t\t\tif (!navigator.geolocation) {\n\t\t\t\t\tgeolocateBtn.disabled = true;\n\t\t\t\t\tgeolocateBtn.textContent = translations.dataset.geolocationNotSupported;\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tgeolocateBtn.addEventListener('click', function(e) {\n\t\t\t\t\te.preventDefault();\n\n\t\t\t\t\tgeoStatus.style.display = 'block';\n\t\t\t\t\tgeoStatus.textContent = translations.dataset.requestingLocation;\n\n\t\t\t\t\tnavigator.geolocation.getCurrentPosition(\n\t\t\t\t\t\t// Success callback\n\t\t\t\t\t\tfunction(position) {\n\t\t\t\t\t\t\tconst lat = position.coords.latitude;\n\t\t\t\t\t\t\tconst lng = position.coords.longitude;\n\n\t\t\t\t\t\t\t// Set the values in the hidden fields\n\t\t\t\t\t\t\tlatInput.value = lat;\n\t\t\t\t\t\t\tlngInput.value = lng;\n\n\t\t\t\t\t\t\t// Clear the location input since we're using coordinates\n\t\t\t\t\t\t\tlocationInput.value = '';\n\n\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationFound;\n\n\t\t\t\t\t\t\t// Submit the form\n\t\t\t\t\t\t\tsearchForm.submit();\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Error callback\n\t\t\t\t\t\tfunction(error) {\n\t\t\t\t\t\t\tgeoStatus.className = 'alert alert-error';\n\n\t\t\t\t\t\t\tswitch(error.code) {\n\t\t\t\t\t\t\t\tcase error.PERMISSION_DENIED:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.permissionDenied;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.POSITION_UNAVAILABLE:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationUnavailable;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tcase error.TIMEOUT:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.locationTimeout;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t\tdefault:\n\t\t\t\t\t\t\t\t\tgeoStatus.textContent = translations.dataset.unknownError;\n\t\t\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t// Options\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tenableHighAccuracy: true,\n\t\t\t\t\t\t\ttimeout: 5000,\n\t\t\t\t\t\t\tmaximumAge: 0\n\t\t\t\t\t\t}\n\t\t\t\t\t);\n\t\t\t\t});\n\t\t\t});\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

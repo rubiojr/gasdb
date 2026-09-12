@@ -10,11 +10,24 @@ type Translations struct {
 	HomeHeading             string
 	LastUpdated             string
 	LocationLabel           string
+	RadiusLabel             string
 	LocationPlaceholder     string
 	LocationExample         string
 	SearchButton            string
 	UseLocationButton       string
 	GeolocationNotSupported string
+
+	// Daily nationwide price summary
+	TodayPrices             string
+	LatestPrices            string
+	PricesUnavailable       string
+	PriceSummaryDescription string
+	PriceSummaryMethod      string
+	PriceDataDate           string
+	FuelLabel               string
+	LowPrice                string
+	AveragePrice            string
+	HighPrice               string
 
 	// Geolocation messages
 	RequestingLocation  string
@@ -27,6 +40,7 @@ type Translations struct {
 	// Results page
 	NearbyStations            string
 	ResultsFor                string
+	ResolvedLocation          string
 	ResultsForCoords          string
 	SearchRadius              string
 	NewSearchButton           string
@@ -36,6 +50,10 @@ type Translations struct {
 	StationsFound             string
 	StationsWithin            string
 	OfYourLocation            string
+	ExpandRadiusTitle         string
+	SearchWithinRadius        string
+	OneStation                string
+	StationCount              string
 
 	// Station card
 	MapButton        string
@@ -51,6 +69,11 @@ type Translations struct {
 
 	// Footer
 	FooterCopyright string
+
+	// Theme switch
+	DarkMode           string
+	SwitchToLightTheme string
+	SwitchToDarkTheme  string
 }
 
 // GetTranslations returns translations for the specified language

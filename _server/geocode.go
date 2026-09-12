@@ -28,56 +28,57 @@ type locationGeocoder struct {
 	nextRequest time.Time
 }
 
-type coordinates struct {
+type geocodedLocation struct {
 	lat, lng float64
+	name     string
 }
 
-func (g *locationGeocoder) lookup(ctx context.Context, location string) (float64, float64, error) {
+func (g *locationGeocoder) lookup(ctx context.Context, location string) (geocodedLocation, error) {
 	location = strings.Join(strings.Fields(location), " ")
 	if location == "" {
-		return 0, 0, errLocationNotFound
+		return geocodedLocation{}, errLocationNotFound
 	}
 	key := strings.ToLower(location)
 	if cached, ok := g.cache.Get(key); ok {
-		point := cached.(coordinates)
-		return point.lat, point.lng, nil
+		return cached.(geocodedLocation), nil
 	}
 
-	// Prefer towns over similarly named buildings; retain address searches.
-	for _, featureType := range []string{"settlement", ""} {
+	// Prefer cities/towns over namesake provinces and buildings. Nominatim's
+	// broader "settlement" filter includes provinces (for example, Soria).
+	for _, featureType := range []string{"city", ""} {
 		point, err := g.search(ctx, location, featureType)
 		if errors.Is(err, errLocationNotFound) {
 			continue
 		}
 		if err != nil {
-			return 0, 0, err
+			return geocodedLocation{}, err
 		}
 		g.cache.Set(key, point, cache.DefaultExpiration)
-		return point.lat, point.lng, nil
+		return point, nil
 	}
-	return 0, 0, errLocationNotFound
+	return geocodedLocation{}, errLocationNotFound
 }
 
-func (g *locationGeocoder) search(ctx context.Context, location, featureType string) (coordinates, error) {
-	query := url.Values{"q": {location}, "format": {"jsonv2"}, "countrycodes": {"es"}, "limit": {"1"}}
+func (g *locationGeocoder) search(ctx context.Context, location, featureType string) (geocodedLocation, error) {
+	query := url.Values{"q": {location}, "format": {"jsonv2"}, "countrycodes": {"es"}, "limit": {"1"}, "addressdetails": {"1"}}
 	if featureType != "" {
 		query.Set("featureType", featureType)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, g.endpoint+"?"+query.Encode(), nil)
 	if err != nil {
-		return coordinates{}, err
+		return geocodedLocation{}, err
 	}
 	req.Header.Set("User-Agent", "gasdb/1.0 (https://github.com/rubiojr/gasdb)")
 	if err := g.wait(ctx); err != nil {
-		return coordinates{}, err
+		return geocodedLocation{}, err
 	}
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return coordinates{}, fmt.Errorf("geocoding request: %w", err)
+		return geocodedLocation{}, fmt.Errorf("geocoding request: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return coordinates{}, fmt.Errorf("geocoding service returned HTTP %d", resp.StatusCode)
+		return geocodedLocation{}, fmt.Errorf("geocoding service returned HTTP %d", resp.StatusCode)
 	}
 	return decodeLocation(resp.Body)
 }
@@ -97,31 +98,63 @@ func (g *locationGeocoder) wait(ctx context.Context) error {
 	}
 }
 
-func decodeLocation(body io.Reader) (coordinates, error) {
+func decodeLocation(body io.Reader) (geocodedLocation, error) {
 	const maxResponseSize = 1 << 20
 	data, err := io.ReadAll(io.LimitReader(body, maxResponseSize+1))
 	if err != nil {
-		return coordinates{}, err
+		return geocodedLocation{}, err
 	}
 	if len(data) > maxResponseSize {
-		return coordinates{}, errors.New("geocoding response too large")
+		return geocodedLocation{}, errors.New("geocoding response too large")
 	}
-	var results []struct{ Lat, Lon string }
+	var results []geocodingResult
 	if err := json.Unmarshal(data, &results); err != nil {
-		return coordinates{}, fmt.Errorf("decoding geocoding response: %w", err)
+		return geocodedLocation{}, fmt.Errorf("decoding geocoding response: %w", err)
 	}
 	if len(results) == 0 {
-		return coordinates{}, errLocationNotFound
+		return geocodedLocation{}, errLocationNotFound
 	}
 	lat, err := parseCoordinate(results[0].Lat, 90)
 	if err != nil {
-		return coordinates{}, err
+		return geocodedLocation{}, err
 	}
 	lng, err := parseCoordinate(results[0].Lon, 180)
 	if err != nil {
-		return coordinates{}, err
+		return geocodedLocation{}, err
 	}
-	return coordinates{lat: lat, lng: lng}, nil
+	return geocodedLocation{lat: lat, lng: lng, name: results[0].label()}, nil
+}
+
+type geocodingResult struct {
+	Lat, Lon, Name string
+	DisplayName    string `json:"display_name"`
+	Address        struct {
+		City, Town, Village, Municipality, Hamlet, Province string
+		StateDistrict                                       string `json:"state_district"`
+	}
+}
+
+func (r geocodingResult) label() string {
+	city := firstPlaceName(r.Address.City, r.Address.Town, r.Address.Village, r.Address.Municipality, r.Address.Hamlet)
+	// Spanish provinces are commonly returned as state_district. County is
+	// usually a comarca, so it must not be mistaken for the province.
+	province := firstPlaceName(r.Address.Province, r.Address.StateDistrict)
+	if city != "" && province != "" {
+		if strings.EqualFold(city, province) {
+			return city
+		}
+		return city + ", " + province
+	}
+	return firstPlaceName(r.DisplayName, city, province, r.Name)
+}
+
+func firstPlaceName(names ...string) string {
+	for _, name := range names {
+		if name = strings.TrimSpace(name); name != "" {
+			return name
+		}
+	}
+	return ""
 }
 
 func parseCoordinate(value string, limit float64) (float64, error) {

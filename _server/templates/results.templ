@@ -4,99 +4,112 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rubiojr/gasdb/pkg/api"
+	"github.com/rubiojr/gasdb/_server/internal/search"
 	"github.com/rubiojr/gasdb/_server/translations"
+	"github.com/rubiojr/gasdb/pkg/api"
 )
 
-templ ResultsPage(stations []api.StationWithDistance, query string, lat, lng, radius float64, err error, t translations.Translations) {
+templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation string, lat, lng, radius float64, err error, suggestions []search.RadiusSuggestion, t translations.Translations) {
 	@Base(t.ResultsTitle, t) {
 		<div class="results">
-		<div class="mb-4">
-			<h1>{ t.NearbyStations }</h1>
-			if query != "" {
-				<p>{ t.ResultsFor } <strong>{ query }</strong></p>
+			<div class="results-header">
+				<h1>{ t.NearbyStations }</h1>
+				if query != "" {
+					<p class="results-location"><span class="text-muted">{ t.ResultsFor }</span><strong>{ query }</strong></p>
+					if resolvedLocation != "" {
+						<p class="results-location resolved-location"><span class="text-muted">{ t.ResolvedLocation }</span><strong>{ resolvedLocation }</strong></p>
+					}
+				} else {
+					<p class="results-location"><span class="text-muted">{ t.ResultsForCoords }</span><strong>{ fmt.Sprintf("%.6f, %.6f", lat, lng) }</strong></p>
+				}
+				<div class="results-toolbar">
+					<p class="results-radius"><span class="text-muted">{ t.RadiusLabel }</span><strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
+					<a href="/" class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+				</div>
+			</div>
+			if len(stations) == 0 && err == nil {
+				<div class="alert alert-info">
+					{ t.NoStationsFound } { fmt.Sprintf("%.1f km", radius) } { t.OfYourLocation }
+				</div>
+				if len(suggestions) > 0 {
+					<section class="radius-suggestions" aria-labelledby="radius-suggestions-heading">
+						<h2 id="radius-suggestions-heading">{ t.ExpandRadiusTitle }</h2>
+						<div class="radius-suggestion-list">
+							for _, suggestion := range suggestions {
+								<a class="radius-suggestion" href={ templ.SafeURL(suggestion.URL) }>
+									<strong>{ fmt.Sprintf(t.SearchWithinRadius, suggestion.Radius) }</strong>
+									<span class="radius-suggestion-count">
+										if suggestion.Count == 1 {
+											{ t.OneStation }
+										} else {
+											{ fmt.Sprintf(t.StationCount, suggestion.Count) }
+										}
+									</span>
+								</a>
+							}
+						</div>
+					</section>
+				}
+			} else if err != nil {
+				<div class="alert alert-error">
+					{ t.LocationNotFound }
+				</div>
 			} else {
-				<p>{ t.ResultsForCoords } <strong>{ fmt.Sprintf("%.6f, %.6f", lat, lng) }</strong></p>
+				<p class="results-count text-muted">{ t.StationsFound } <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> { t.StationsWithin } { fmt.Sprintf("%.1f km", radius) }</p>
+				for _, station := range stations {
+					@StationCard(station, t)
+				}
 			}
-			<p>{ t.SearchRadius } <strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
-			<a href="/" class="btn btn-dark">{ t.NewSearchButton }</a>
-		</div>
-
-		if len(stations) == 0 && err == nil {
-			<div class="alert alert-info">
-				{ t.NoStationsFound } { fmt.Sprintf("%.1f km", radius) } { t.OfYourLocation }
-			</div>
-		} else if err != nil {
-			<div class="alert alert-error">
-				{ t.LocationNotFound }
-			</div>
-		} else {
-			<p>{ t.StationsFound } <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> { t.StationsWithin } { fmt.Sprintf("%.1f km", radius) }</p>
-
-			for _, station := range stations {
-				@StationCard(station, t)
-			}
-		}
 		</div>
 	}
 }
 
 templ StationCard(station api.StationWithDistance, t translations.Translations) {
-	<div class="card station-card">
+	<article class="card station-card">
 		<div class="card-body">
-			<div class="mb-2">
-				<span class="card-title mr-2 mb-3">{ station.Station.Rotulo }</span>
-				<span>
-					<a
-						href={ templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
+			<div class="station-heading">
+				<h2 class="station-name">{ station.Station.Rotulo }</h2>
+				<span class="station-distance" aria-label={ fmt.Sprintf("%.2f %s", station.Distance/1000, t.KmAway) }>{ fmt.Sprintf("%.2f km", station.Distance/1000) }</span>
+			</div>
+			<p class="station-address text-muted">{ station.Station.Direccion }</p>
+			<dl class="station-prices">
+				@StationPrice(t.Gasoline95, station.Station.PrecioGasolina95E5, t.NotAvailable)
+				@StationPrice(t.Gasoline98, station.Station.PrecioGasolina98E5, t.NotAvailable)
+				@StationPrice(t.Diesel, station.Station.PrecioGasoleoA, t.NotAvailable)
+				@StationPrice(t.PremiumDiesel, station.Station.PrecioGasoleoPremium, t.NotAvailable)
+			</dl>
+			<div class="station-map-links">
+				<a
+					href={ templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
 							formatDecimal(station.Station.Latitud),
 							formatDecimal(station.Station.Longitud))) }
-						target="_blank"
-						class="btn btn-map btn-sm mr-2"
-						alt={ t.MapAltOSM }
-					>
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn btn-map"
+					aria-label={ t.MapAltOSM }
+				>
 					{ t.MapButton }
-					</a>
-					<a
-						href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
+				</a>
+				<a
+					href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
 							formatDecimal(station.Station.Latitud),
 							formatDecimal(station.Station.Longitud))) }
-						target="_blank"
-						class="btn btn-map btn-sm"
-						alt={ t.MapAltGoogle }
-					>
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn btn-map"
+					aria-label={ t.MapAltGoogle }
+				>
 					{ t.GoogleMapsButton }
-					</a>
-				</span>
-			</div>
-			<div class="mb-2">
-				<span class="card-subtitle text-muted">{ station.Station.Direccion }</span>
-				<span class="col-md-6 text-success"><strong>{ fmt.Sprintf("%.2f %s", station.Distance/1000, t.KmAway) }</strong></span>
-			</div>
-
-			<div class="row">
-				<div class="col-md-6">
-					<div class="price-item">
-						<span class="text-muted">{ t.Gasoline95 }</span>
-						<strong>{ formatPrice(station.Station.PrecioGasolina95E5, t.NotAvailable) }</strong>
-					</div>
-					<div class="price-item">
-						<span class="text-muted">{ t.Gasoline98 }</span>
-						<strong>{ formatPrice(station.Station.PrecioGasolina98E5, t.NotAvailable) }</strong>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="price-item">
-						<span class="text-muted">{ t.Diesel }</span>
-						<strong>{ formatPrice(station.Station.PrecioGasoleoA, t.NotAvailable) }</strong>
-					</div>
-					<div class="price-item">
-						<span class="text-muted">{ t.PremiumDiesel }</span>
-						<strong>{ formatPrice(station.Station.PrecioGasoleoPremium, t.NotAvailable) }</strong>
-					</div>
-				</div>
+				</a>
 			</div>
 		</div>
+	</article>
+}
+
+templ StationPrice(label, price, notAvailable string) {
+	<div class="station-price">
+		<dt>{ strings.TrimSuffix(label, ":") }</dt>
+		<dd>{ formatPrice(price, notAvailable) }</dd>
 	</div>
 }
 
