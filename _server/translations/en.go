@@ -3,12 +3,14 @@ package translations
 // GetEnglishTranslations returns all English text strings
 func GetEnglishTranslations() Translations {
 	return Translations{
+		Language: "en",
 		// Page titles
-		HomeTitle:    "Fuel Station Finder - Home",
-		ResultsTitle: "Fuel Station Results",
+		HomeTitle:    "GasDB — Fuel prices in Spain",
+		ResultsTitle: "GasDB — Search results",
 
 		// Home page
-		HomeHeading:             "🔎 Nearby Fuel Stations",
+		HomeHeading:             "GasDB",
+		BrandEyebrow:            "Fuel prices in Spain",
 		LastUpdated:             "📅 Fuel prices last updated:",
 		LocationLabel:           "Location",
 		RadiusLabel:             "Radius",
@@ -21,18 +23,18 @@ func GetEnglishTranslations() Translations {
 		TodayPrices:               "Today's prices in Spain",
 		LatestPrices:              "Latest prices in Spain",
 		PricesUnavailable:         "Fuel prices are not available yet.",
-		PriceSummaryDescription:   "Lowest, average and highest reported prices across Spain, in €/L. The average is calculated from stations reporting a price for each fuel.",
+		PriceSummaryDescription:   "Lowest and highest are individual station prices across Spain. The national average uses all stations reporting a valid price for each fuel. Province rankings below compare averages, not individual station prices.",
 		PriceDataDate:             "Data published:",
 		PriceSummaryMethod:        "How are prices calculated?",
 		FuelLabel:                 "Fuel",
-		LowPrice:                  "Low",
-		AveragePrice:              "Average",
-		HighPrice:                 "High",
+		LowPrice:                  "Lowest station price",
+		AveragePrice:              "National average",
+		HighPrice:                 "Highest station price",
 		ProvincesTitle:            "Provinces",
-		ProvincePricesDescription: "Average price per province · €/L",
+		ProvincePricesDescription: "Province averages for the selected fuel · €/L",
 		ProvincePricesUnavailable: "No province price data for this fuel.",
-		CheapestProvinces:         "Cheapest",
-		MostExpensiveProvinces:    "Most expensive",
+		CheapestProvinces:         "Lowest province averages",
+		MostExpensiveProvinces:    "Highest province averages",
 
 		// Geolocation messages
 		RequestingLocation:  "Requesting your location...",

@@ -2,12 +2,15 @@ package translations
 
 // Translations contains all text strings for the application
 type Translations struct {
+	Language string
+
 	// Page titles
 	HomeTitle    string
 	ResultsTitle string
 
 	// Home page
 	HomeHeading             string
+	BrandEyebrow            string
 	LastUpdated             string
 	LocationLabel           string
 	RadiusLabel             string

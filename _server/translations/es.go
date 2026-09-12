@@ -3,12 +3,14 @@ package translations
 // GetSpanishTranslations returns all Spanish text strings
 func GetSpanishTranslations() Translations {
 	return Translations{
+		Language: "es",
 		// Page titles
-		HomeTitle:    "Buscador de Gasolineras - Inicio",
-		ResultsTitle: "Resultados de Gasolineras",
+		HomeTitle:    "GasDB — Precios de carburantes en España",
+		ResultsTitle: "GasDB — Resultados",
 
 		// Home page
-		HomeHeading:             "🔎 Gasolineras Cercanas",
+		HomeHeading:             "GasDB",
+		BrandEyebrow:            "Carburantes en España",
 		LastUpdated:             "📅 Precios actualizados el:",
 		LocationLabel:           "Ubicación",
 		RadiusLabel:             "Radio",
@@ -21,18 +23,18 @@ func GetSpanishTranslations() Translations {
 		TodayPrices:               "Precios de hoy en España",
 		LatestPrices:              "Últimos precios en España",
 		PricesUnavailable:         "Los precios de los carburantes todavía no están disponibles.",
-		PriceSummaryDescription:   "Precios mínimos, medios y máximos en España, en €/L. La media se calcula entre las gasolineras que publican un precio para cada carburante.",
+		PriceSummaryDescription:   "El mínimo y el máximo son precios de gasolineras individuales de toda España. La media nacional usa todas las gasolineras que publican un precio válido para cada carburante. La comparación provincial de abajo usa medias, no precios individuales.",
 		PriceDataDate:             "Datos publicados:",
 		PriceSummaryMethod:        "¿Cómo se calculan los precios?",
 		FuelLabel:                 "Carburante",
-		LowPrice:                  "Mínimo",
-		AveragePrice:              "Media",
-		HighPrice:                 "Máximo",
+		LowPrice:                  "Mínimo por estación",
+		AveragePrice:              "Media nacional",
+		HighPrice:                 "Máximo por estación",
 		ProvincesTitle:            "Provincias",
-		ProvincePricesDescription: "Precio medio por provincia · €/L",
+		ProvincePricesDescription: "Medias provinciales del carburante seleccionado · €/L",
 		ProvincePricesUnavailable: "Sin datos provinciales para este carburante.",
-		CheapestProvinces:         "Más baratas",
-		MostExpensiveProvinces:    "Más caras",
+		CheapestProvinces:         "Medias provinciales más bajas",
+		MostExpensiveProvinces:    "Medias provinciales más altas",
 
 		// Geolocation messages
 		RequestingLocation:  "Obteniendo tu ubicación...",

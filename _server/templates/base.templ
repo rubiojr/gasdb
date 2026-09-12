@@ -8,7 +8,7 @@ import (
 
 templ Base(title string, t translations.Translations) {
 	<!DOCTYPE html>
-	<html lang="es">
+	<html lang={ t.Language }>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -47,6 +47,7 @@ templ Base(title string, t translations.Translations) {
 					--price-bg: light-dark(#e9eef2, #293947);
 					--price-border: light-dark(#d9e1e7, #435564);
 					--distance-bg: light-dark(#edf6ef, #1c3b30);
+					--brand-road: light-dark(#c6dfd1, #204837);
 					--focus-ring: light-dark(rgba(18, 100, 62, 0.18), rgba(121, 216, 168, 0.22));
 					--info-bg: light-dark(rgba(13, 202, 240, 0.1), #132f3b);
 					--info-border: light-dark(rgba(13, 202, 240, 0.4), #296176);
@@ -100,9 +101,6 @@ templ Base(title string, t translations.Translations) {
 				.theme-toggle[aria-pressed="true"] .theme-icon-moon {
 					display: none;
 				}
-				.home-screen .form-title, .results-header h1 {
-					padding-right: 3.25rem;
-				}
 
 				/* Reset & Base */
 				* {
@@ -112,6 +110,9 @@ templ Base(title string, t translations.Translations) {
 				}
 				html, body {
 					height: 100%;
+				}
+				html {
+					scrollbar-gutter: stable both-edges;
 				}
 				body {
 					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -142,6 +143,29 @@ templ Base(title string, t translations.Translations) {
 					display: flex;
 					flex-direction: column;
 					justify-content: center;
+				}
+				.site-header {
+					padding: clamp(2rem, 7vh, 5rem) 1.25rem 0;
+					margin-bottom: 0.75rem;
+				}
+				.site-brand {
+					display: block;
+					padding-right: 3.25rem;
+					text-decoration: none;
+				}
+				.page-content {
+					padding: 0 1.25rem;
+				}
+				.visually-hidden {
+					position: absolute;
+					width: 1px;
+					height: 1px;
+					padding: 0;
+					margin: -1px;
+					overflow: hidden;
+					clip-path: inset(50%);
+					white-space: nowrap;
+					border: 0;
 				}
 				.mb-4 {
 					margin-bottom: 1.5rem;
@@ -216,7 +240,7 @@ templ Base(title string, t translations.Translations) {
 				}
 
 				.results {
-					padding-top: 20px;
+					padding-top: 0;
 				}
 				.results-header {
 					margin-bottom: 1.25rem;
@@ -304,7 +328,58 @@ templ Base(title string, t translations.Translations) {
 					margin-bottom: 0.75rem;
 				}
 				.home-screen {
-					padding-top: clamp(2rem, 7vh, 5rem);
+					padding-top: 0;
+				}
+				.home-screen .form-body {
+					padding: 0;
+				}
+				.brand-banner {
+					display: block;
+					width: 100%;
+					height: auto;
+					overflow: hidden;
+				}
+				.brand-wordmark {
+					font-family: inherit;
+					font-size: 108px;
+					font-weight: 800;
+					letter-spacing: -6px;
+				}
+				.brand-kicker {
+					font-family: inherit;
+					font-size: 12px;
+					font-weight: 600;
+					letter-spacing: 2.4px;
+					text-transform: uppercase;
+					fill: var(--text-muted);
+				}
+				.brand-road {
+					stroke-dasharray: 1;
+					stroke-dashoffset: 0;
+					animation: brand-road-enter 950ms cubic-bezier(0.22, 1, 0.36, 1) both;
+				}
+				.brand-lane {
+					animation: brand-lane-enter 250ms 650ms ease both, brand-lane-flow 1600ms 900ms linear infinite;
+				}
+				.brand-waypoint-halo {
+					transform-box: fill-box;
+					transform-origin: center;
+					animation: brand-waypoint-pulse 2400ms 800ms ease-out infinite;
+				}
+				@keyframes brand-road-enter {
+					from { stroke-dashoffset: 1; }
+					to { stroke-dashoffset: 0; }
+				}
+				@keyframes brand-lane-enter {
+					from { opacity: 0; }
+					to { opacity: 0.65; }
+				}
+				@keyframes brand-lane-flow {
+					to { stroke-dashoffset: -23; }
+				}
+				@keyframes brand-waypoint-pulse {
+					from { transform: scale(0.45); opacity: 0.36; }
+					to { transform: scale(1.35); opacity: 0; }
 				}
 				.home-updated time {
 					white-space: nowrap;
@@ -422,7 +497,7 @@ templ Base(title string, t translations.Translations) {
 					cursor: pointer;
 					text-decoration: none;
 				}
-				.btn:focus-visible, .theme-toggle:focus-visible, .radius-suggestion:focus-visible {
+				.btn:focus-visible, .theme-toggle:focus-visible, .radius-suggestion:focus-visible, .site-brand:focus-visible {
 					outline: 2px solid var(--green);
 					outline-offset: 3px;
 				}
@@ -575,6 +650,10 @@ templ Base(title string, t translations.Translations) {
 				.price-table tbody th {
 					font-weight: 500;
 				}
+				.price-table thead th {
+					vertical-align: bottom;
+					overflow-wrap: anywhere;
+				}
 				.province-rankings {
 					margin-top: 1rem;
 					padding-top: 1rem;
@@ -688,8 +767,14 @@ templ Base(title string, t translations.Translations) {
 					}
 				}
 				@media (max-width: 480px) {
-					.results {
-						padding-top: 1.5rem;
+					.site-header {
+						padding: 1.5rem 0 0;
+					}
+					.page-content {
+						padding: 0;
+					}
+					.brand-kicker {
+						display: none;
 					}
 					.results-header h1 {
 						font-size: 1.5rem;
@@ -704,18 +789,6 @@ templ Base(title string, t translations.Translations) {
 					}
 					.station-name {
 						font-size: 1rem;
-					}
-					.home-screen {
-						padding-top: 1.5rem;
-					}
-					.home-screen .form-body {
-						padding: 0;
-					}
-					.home-screen .form-title {
-						font-size: 1.5rem;
-						line-height: 1.25;
-						letter-spacing: -0.025em;
-						margin-bottom: 0.5rem;
 					}
 					.home-updated {
 						font-size: 0.9375rem;
@@ -768,7 +841,7 @@ templ Base(title string, t translations.Translations) {
 						padding: 0.625rem 0.25rem;
 					}
 					.price-table th:first-child {
-						width: 34%;
+						width: 30%;
 						padding-left: 0;
 					}
 					.price-table thead th {
@@ -784,6 +857,14 @@ templ Base(title string, t translations.Translations) {
 						padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
 						font-size: 0.75rem;
 						text-align: center;
+					}
+				}
+				@media (prefers-reduced-motion: reduce) {
+					.brand-road, .brand-lane, .brand-waypoint-halo {
+						animation: none;
+					}
+					.brand-road {
+						stroke-dasharray: none;
 					}
 				}
 			</style>
@@ -811,7 +892,14 @@ templ Base(title string, t translations.Translations) {
 					</button>
 				</div>
 				<div class="container">
-					{ children... }
+					<header class="site-header">
+						<a class="site-brand" href={ templ.SafeURL("/?lang=" + t.Language) } aria-label="GasDB">
+							@BrandBanner(t)
+						</a>
+					</header>
+					<main class="page-content">
+						{ children... }
+					</main>
 				</div>
 				<footer class="footer text-muted">
 					<p>© { time.Now().Year() } { t.FooterCopyright } · { version.String() }</p>

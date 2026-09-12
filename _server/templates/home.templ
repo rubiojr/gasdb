@@ -10,13 +10,14 @@ templ Home(lastUpdate *time.Time, summary pricesummary.Summary, t translations.T
 	@Base(t.HomeTitle, t) {
 		<div class="form home-screen">
 			<div class="form-body">
-				<h1 class="form-title">{ t.HomeHeading }</h1>
+				<h1 class="visually-hidden">{ t.HomeHeading }</h1>
 				if lastUpdate != nil {
 					<p class="home-updated text-muted mb-3">
 						<small>{ t.LastUpdated } <time datetime={ lastUpdate.Format("2006-01-02") }>{ lastUpdate.Format("2006-01-02") }</time></small>
 					</p>
 				}
 				<form action="/search" method="get" id="searchForm">
+					<input type="hidden" name="lang" value={ t.Language }/>
 					<div class="search-fields mb-3">
 						<div class="location-field">
 							<label for="location" class="form-label">{ t.LocationLabel }</label>

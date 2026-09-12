@@ -48,6 +48,8 @@ func TestHomePriceSummary(t *testing.T) {
 	for _, lang := range []string{"es", "en"} {
 		page := render(lang)
 		tr := translations.GetTranslations(lang)
+		assert.Contains(t, page, `<html lang="`+lang+`">`)
+		assert.Contains(t, page, `name="lang" value="`+lang+`"`)
 		assert.Contains(t, page, tr.LatestPrices)
 		assert.NotContains(t, page, tr.TodayPrices)
 		assert.Contains(t, page, data.Fecha)

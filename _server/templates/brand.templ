@@ -1,0 +1,17 @@
+package templates
+
+import "github.com/rubiojr/gasdb/_server/translations"
+
+templ BrandBanner(t translations.Translations) {
+	<svg class="brand-banner" viewBox="0 0 720 160" role="img" aria-label="GasDB" xmlns="http://www.w3.org/2000/svg">
+		<g aria-hidden="true">
+			<path class="brand-road" pathLength="1" d="M510 24C558 24 586 32 586 58C586 92 544 98 575 118C601 137 649 136 689 136" fill="none" stroke="var(--brand-road)" stroke-width="42" stroke-linecap="round"></path>
+			<path class="brand-lane" d="M510 24C558 24 586 32 586 58C586 92 544 98 575 118C601 137 649 136 689 136" fill="none" stroke="var(--green)" stroke-width="2" stroke-dasharray="10 13" opacity=".65"></path>
+			<circle class="brand-waypoint-halo" cx="569" cy="93" r="23" fill="var(--green)" opacity=".14"></circle>
+			<circle cx="569" cy="93" r="10" fill="var(--green)"></circle>
+			<circle cx="569" cy="93" r="3" fill="var(--page-bg)"></circle>
+		</g>
+		<text x="4" y="20" class="brand-kicker">{ t.BrandEyebrow }</text>
+		<text x="0" y="124" class="brand-wordmark" fill="var(--text-dark)">Gas<tspan fill="var(--green)">DB</tspan></text>
+	</svg>
+}

@@ -82,6 +82,10 @@ The interface follows the operating system's light or dark appearance by
 default. The sun/moon button at the top right switches themes and remembers
 your choice in this browser, including when navigating between search and results.
 
+Home and results share the GasDB masthead and content width. The road has a
+short entrance animation, moving lane markings, and a pulsing waypoint;
+these animations are disabled when reduced motion is enabled in the OS.
+
 ### Search Options
 
 - **Location Search**: Enter city, neighborhood, or address

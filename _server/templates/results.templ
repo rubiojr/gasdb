@@ -24,7 +24,7 @@ templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation st
 				}
 				<div class="results-toolbar">
 					<p class="results-radius"><span class="text-muted">{ t.RadiusLabel }</span><strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
-					<a href="/" class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+					<a href={ templ.SafeURL("/?lang=" + t.Language) } class="btn btn-outline-dark">{ t.NewSearchButton }</a>
 				</div>
 			</div>
 			if len(stations) == 0 && err == nil {

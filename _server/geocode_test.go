@@ -176,6 +176,7 @@ func TestResolvedLocationRendering(t *testing.T) {
 			assert.Contains(t, output.String(), ">masnou</strong>")
 			assert.Contains(t, output.String(), tr.ResolvedLocation)
 			assert.Contains(t, output.String(), ">el Masnou, Barcelona</strong>")
+			assert.Contains(t, output.String(), `href="/?lang=`+lang+`"`)
 		})
 	}
 	var output strings.Builder
