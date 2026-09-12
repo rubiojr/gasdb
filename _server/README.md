@@ -18,6 +18,7 @@ A web-based interface for finding nearby fuel stations in Spain with current pri
 
 ```bash
 cd _server
+go generate ./internal/version
 go build -o gasdb-server .
 ./gasdb-server
 ```
@@ -32,6 +33,29 @@ The server will start on `http://127.0.0.1:8080` by default.
 
 - `-port`: HTTP server port (default: 8080)
 - `-db`: Path to SQLite database file (default: fuel_prices.db)
+- `-version`: Print the server version and exit without opening the database
+
+### Versioning
+
+The footer on every page displays the same version as `./gasdb-server --version`.
+The version is the latest Git tag reachable from the current commit, selected
+with `git describe --tags --abbrev=0` (for example, `v1.2.3`). It is embedded in
+the binary, so the deployed server does not need Git or a checkout.
+
+Run `go generate ./internal/version` before building to refresh
+`internal/version/VERSION`. The local `scripts/deploy` helper does this
+automatically and prints the selected tag, including during dry runs. Dry runs
+do not modify the version file. Plain `go build` uses the tag already recorded
+in that file, which also allows builds from source archives.
+
+To set a release version, build from `_server` with:
+
+```bash
+go build -ldflags "-X github.com/rubiojr/gasdb/_server/internal/version.Version=v1.2.3" -o gasdb-server .
+./gasdb-server --version
+```
+
+An explicit release version takes precedence over the embedded tag.
 
 ## Usage
 

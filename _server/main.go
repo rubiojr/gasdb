@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/httprate"
 	"github.com/patrickmn/go-cache"
+	"github.com/rubiojr/gasdb/_server/internal/version"
 	"github.com/rubiojr/gasdb/_server/templates"
 	"github.com/rubiojr/gasdb/_server/translations"
 	"github.com/rubiojr/gasdb/internal/gasdb"
@@ -28,6 +29,15 @@ import (
 const DefaultRadius = 5.0 // km
 
 func main() {
+	port := flag.Int("port", 8080, "HTTP server port")
+	dbPath := flag.String("db", "fuel_prices.db", "Path to the database file")
+	showVersion := flag.Bool("version", false, "Print server version and exit")
+	flag.Parse()
+	if *showVersion {
+		fmt.Println("gasdb-server " + version.String())
+		return
+	}
+
 	c := cache.New(30*time.Minute, 90*time.Minute)
 	geocoder := locationGeocoder{
 		client:   &http.Client{Timeout: 10 * time.Second},
@@ -35,9 +45,6 @@ func main() {
 		cache:    c,
 		interval: time.Second,
 	}
-	port := flag.Int("port", 8080, "HTTP server port")
-	dbPath := flag.String("db", "fuel_prices.db", "Path to the database file")
-	flag.Parse()
 
 	ctx := context.Background()
 

@@ -2,6 +2,7 @@ package templates
 
 import (
 	"time"
+	"github.com/rubiojr/gasdb/_server/internal/version"
 	"github.com/rubiojr/gasdb/_server/translations"
 )
 
@@ -301,7 +302,7 @@ templ Base(title string, t translations.Translations) {
 					{ children... }
 				</div>
 				<footer class="footer text-muted">
-					<p>© { time.Now().Year() } { t.FooterCopyright }</p>
+					<p>© { time.Now().Year() } { t.FooterCopyright } · { version.String() }</p>
 				</footer>
 			</div>
 		</body>
