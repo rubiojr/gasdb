@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/rubiojr/gasdb/internal/gasdb"
 	"github.com/rubiojr/gasdb/pkg/api"
 	"github.com/tkrajina/gpxgo/gpx"
 )
@@ -45,12 +44,8 @@ func countRadii(stations []api.GasStation, lat, lng float64) [len(suggestedRadii
 	var counts [len(suggestedRadii)]int
 	for i := range stations {
 		station := &stations[i]
-		stationLat, err := gasdb.ParseLatLong(station.Latitud)
-		if err != nil {
-			continue
-		}
-		stationLng, err := gasdb.ParseLatLong(station.Longitud)
-		if err != nil {
+		stationLat, stationLng, ok := StationCoordinates(station)
+		if !ok {
 			continue
 		}
 		distance := gpx.Distance2D(lat, lng, stationLat, stationLng, true)

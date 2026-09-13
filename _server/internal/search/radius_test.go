@@ -21,6 +21,7 @@ func TestSuggestRadiiCountsAndPreservesQuery(t *testing.T) {
 		{Latitud: "0", Longitud: "invalid"},
 		{Latitud: "NaN", Longitud: "0"},
 		{Latitud: "0", Longitud: "+Inf"},
+		{Latitud: "360", Longitud: "0"},
 	}
 	query := url.Values{
 		"location": {"L'Hospitalet & Barcelona"},
@@ -44,6 +45,23 @@ func TestSuggestRadiiCountsAndPreservesQuery(t *testing.T) {
 		assert.NotEqual(t, "5", link.Query().Get("radius"))
 	}
 	assert.Equal(t, original, query.Encode(), "suggestions must not modify the current request")
+}
+
+func TestStationCoordinates(t *testing.T) {
+	lat, lng, ok := StationCoordinates(&api.GasStation{Latitud: "41,4", Longitud: "-2,3"})
+	assert.True(t, ok)
+	assert.Equal(t, 41.4, lat)
+	assert.Equal(t, -2.3, lng)
+	for _, station := range []*api.GasStation{
+		nil,
+		{Latitud: "91", Longitud: "0"},
+		{Latitud: "-91", Longitud: "0"},
+		{Latitud: "0", Longitud: "181"},
+		{Latitud: "0", Longitud: "-181"},
+	} {
+		_, _, ok := StationCoordinates(station)
+		assert.False(t, ok)
+	}
 }
 
 func TestSuggestRadiiSkipsEmptyAndRedundantOptions(t *testing.T) {

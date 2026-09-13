@@ -98,7 +98,10 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(logger))
 	r.Use(middleware.Recoverer)
-	r.Use(httprate.LimitByIP(20, time.Minute))
+	jsonAPI := apiHandler{storage: storage, geocoder: &geocoder, logger: logger.Logger}
+	r.Use(httprate.Limit(20, time.Minute, httprate.WithKeyFuncs(httprate.KeyByIP), httprate.WithLimitHandler(jsonAPI.rateLimited)))
+	r.Get("/api/search", jsonAPI.search)
+	r.Get("/api/stats", jsonAPI.stats)
 
 	// Define routes
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -188,13 +191,8 @@ func main() {
 		// Calculate distances and sort by distance
 		stations := make([]api.StationWithDistance, 0, len(nearbyStations))
 		for _, station := range nearbyStations {
-			stationLat, err := gasdb.ParseLatLong(station.Latitud)
-			if err != nil {
-				continue
-			}
-
-			stationLng, err := gasdb.ParseLatLong(station.Longitud)
-			if err != nil {
+			stationLat, stationLng, ok := search.StationCoordinates(station)
+			if !ok {
 				continue
 			}
 
@@ -260,11 +258,11 @@ func getFuelPrice(station *api.GasStation, fuelType string) float64 {
 		priceStr = station.PrecioGasolina98E10
 	case "gasolina95premium":
 		priceStr = station.PrecioGasolina95E5Prem
-	case "gasoleo", "gasoleoA":
+	case "gasoleo", "gasoleoa":
 		priceStr = station.PrecioGasoleoA
-	case "gasoleoB":
+	case "gasoleob":
 		priceStr = station.PrecioGasoleoB
-	case "gasoleoPremium":
+	case "gasoleopremium":
 		priceStr = station.PrecioGasoleoPremium
 	case "biodiesel":
 		priceStr = station.PrecioBiodiesel

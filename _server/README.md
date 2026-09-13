@@ -119,6 +119,21 @@ form; without JavaScript, all four fuel comparisons remain visible.
 
 ### URL Parameters
 
+For machine-readable queries, use the [JSON API](API.md):
+
+```bash
+curl --get 'https://fuel.rbel.co/api/search' \
+  --data-urlencode 'location=soria' \
+  --data-urlencode 'fuel=gasoleo' \
+  --data-urlencode 'radius=5' \
+  --data-urlencode 'limit=5'
+
+curl 'https://fuel.rbel.co/api/stats'
+```
+
+The JSON routes are available after deploying a build containing them. The HTML
+`/` and `/search` routes remain available for browser use.
+
 The search endpoint supports direct URL access:
 
 ```
