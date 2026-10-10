@@ -41,8 +41,9 @@ The version is the latest Git tag reachable from the current commit, selected
 with `git describe --tags --abbrev=0` (for example, `v1.2.3`). It is embedded in
 the binary, so the deployed server does not need Git or a checkout.
 
-Both `scripts/build-server` and the local `scripts/deploy` helper read the tag
-on every invocation. After creating a new tag, just build or deploy again.
+`scripts/build-server` reads the tag on every invocation, including deploys
+with `scripts/build-server --deploy`. After creating a new tag, just build or
+deploy again.
 There is no version file to update, generate, or commit. With no reachable tag,
 the build uses the abbreviated commit hash.
 

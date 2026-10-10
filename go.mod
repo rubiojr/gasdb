@@ -1,6 +1,6 @@
 module github.com/rubiojr/gasdb
 
-go 1.24.2
+go 1.27
 
 require (
 	github.com/muesli/gominatim v0.1.0
