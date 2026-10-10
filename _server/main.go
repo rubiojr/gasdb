@@ -33,10 +33,14 @@ func main() {
 	port := flag.Int("port", 8080, "HTTP server port")
 	dbPath := flag.String("db", "fuel_prices.db", "Path to the database file")
 	showVersion := flag.Bool("version", false, "Print server version and exit")
+	mapStyle := flag.String("map-style", DefaultMapStyle, "MapLibre style URL for the results map")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println("gasdb-server " + version.String())
 		return
+	}
+	if err := validateMapStyle(*mapStyle); err != nil {
+		log.Fatal(err)
 	}
 
 	c := cache.New(30*time.Minute, 90*time.Minute)
@@ -156,7 +160,7 @@ func main() {
 					logger.Error("Location lookup failed", "error", err)
 				}
 				w.WriteHeader(status)
-				templates.ResultsPage([]api.StationWithDistance{}, location, "", lat, lng, radius, err, nil, t).Render(r.Context(), w)
+				templates.ResultsPage([]api.StationWithDistance{}, location, "", lat, lng, radius, err, nil, templates.ResultsMap{}, t).Render(r.Context(), w)
 				return
 			}
 			lat, lng, resolvedLocation = place.lat, place.lng, place.name
@@ -235,7 +239,8 @@ func main() {
 				suggestions = search.SuggestRadii(prices.ListaEESSPrecio, lat, lng, radius, query)
 			}
 		}
-		templates.ResultsPage(stations, location, resolvedLocation, lat, lng, radius, nil, suggestions, t).Render(r.Context(), w)
+		resultsMap := newResultsMap(stations, lat, lng, radius, fuelType, *mapStyle)
+		templates.ResultsPage(stations, location, resolvedLocation, lat, lng, radius, nil, suggestions, resultsMap, t).Render(r.Context(), w)
 	})
 
 	// Start server

@@ -277,6 +277,148 @@ templ Base(title string, t translations.Translations) {
 					font-size: 0.875rem;
 					white-space: normal;
 				}
+				.results-toolbar .btn[hidden] {
+					display: none;
+				}
+				.results-actions {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 0.5rem;
+				}
+
+				/* Results map */
+				.results-map {
+					margin-bottom: 1.25rem;
+				}
+				.results-map-canvas {
+					/* The map style is light, so its markers and popups are too. */
+					color-scheme: light;
+					height: min(60vh, 28rem);
+					border: 1px solid var(--subtle-border);
+					border-radius: 12px;
+					overflow: hidden;
+					/* The search radius is drawn in this color. */
+					accent-color: var(--green);
+				}
+				.results-map .maplibregl-map {
+					font-family: inherit;
+				}
+				.results-map-status {
+					margin-top: 0.5rem;
+					font-size: 0.875rem;
+					color: var(--text-muted);
+				}
+				.results-map-status:empty {
+					display: none;
+				}
+				.map-marker {
+					padding: 0.125rem 0.5rem;
+					border: 1px solid var(--control-border);
+					border-radius: 999px;
+					background-color: var(--card-bg);
+					color: var(--text-dark);
+					box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+					font-size: 0.8125rem;
+					font-weight: 600;
+					font-variant-numeric: tabular-nums;
+					line-height: 1.5;
+					white-space: nowrap;
+					cursor: pointer;
+				}
+				.map-marker::after {
+					content: "";
+					position: absolute;
+					left: 50%;
+					bottom: -5px;
+					width: 8px;
+					height: 8px;
+					background-color: inherit;
+					border-right: inherit;
+					border-bottom: inherit;
+					transform: translateX(-50%) rotate(45deg);
+				}
+				.map-marker-lowest {
+					z-index: 1;
+					border-color: var(--green);
+					background-color: var(--green);
+					color: var(--on-primary);
+				}
+				.map-marker-unpriced {
+					color: var(--text-muted);
+					font-weight: 500;
+				}
+				.map-marker:hover, .map-marker:focus-visible {
+					z-index: 2;
+				}
+				.map-marker:focus-visible {
+					outline: 2px solid var(--green);
+					outline-offset: 2px;
+				}
+				.map-center {
+					width: 16px;
+					height: 16px;
+					border: 3px solid var(--card-bg);
+					border-radius: 50%;
+					background-color: var(--text-dark);
+					box-shadow: 0 0 0 1px var(--control-border), 0 1px 4px rgba(0, 0, 0, 0.3);
+				}
+				.results-map .maplibregl-popup-content {
+					padding: 0.875rem;
+					border-radius: 12px;
+					background-color: var(--card-bg);
+					color: var(--text-dark);
+					box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+					font-size: 1rem;
+					line-height: 1.5;
+				}
+				.results-map .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+				.results-map .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+				.results-map .maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+					border-bottom-color: var(--card-bg);
+				}
+				.results-map .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+				.results-map .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+				.results-map .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+					border-top-color: var(--card-bg);
+				}
+				.results-map .maplibregl-popup-anchor-left .maplibregl-popup-tip {
+					border-right-color: var(--card-bg);
+				}
+				.results-map .maplibregl-popup-anchor-right .maplibregl-popup-tip {
+					border-left-color: var(--card-bg);
+				}
+				.results-map .maplibregl-popup-close-button {
+					width: 2rem;
+					height: 2rem;
+					border-radius: 0 12px 0 8px;
+					color: var(--text-muted);
+					font-size: 1.25rem;
+				}
+				.map-popup .station-heading {
+					padding-right: 1.5rem;
+				}
+				.map-popup .station-name {
+					font-size: 1rem;
+				}
+				.map-popup .station-address {
+					margin: 0.25rem 0 0.625rem;
+					font-size: 0.8125rem;
+				}
+				.map-popup .station-prices {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+				.map-popup .station-price {
+					padding: 0.375rem 0.5rem;
+				}
+				.map-popup .station-price dd {
+					font-size: 0.9375rem;
+				}
+				.map-popup .station-map-links {
+					margin-top: 0.625rem;
+				}
+				.map-popup .station-map-links .btn {
+					min-height: 2.25rem;
+				}
 				.radius-suggestions {
 					margin: 1.25rem 0;
 				}

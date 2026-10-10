@@ -63,6 +63,16 @@ type Translations struct {
 	OneStation                string
 	StationCount              string
 
+	// Results map
+	ShowMapButton  string
+	HideMapButton  string
+	MapLabel       string
+	MapLoading     string
+	MapUnavailable string
+	SearchCenter   string
+	// MapLocale overrides MapLibre's built-in English UI strings.
+	MapLocale map[string]string
+
 	// Station card
 	MapButton        string
 	GoogleMapsButton string

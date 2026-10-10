@@ -62,6 +62,14 @@ func GetEnglishTranslations() Translations {
 		OneStation:                "1 station",
 		StationCount:              "%d stations",
 
+		// Results map
+		ShowMapButton:  "🗺️ Show map",
+		HideMapButton:  "🗺️ Hide map",
+		MapLabel:       "Map of nearby stations",
+		MapLoading:     "Loading map...",
+		MapUnavailable: "The map could not be loaded. Please try again later.",
+		SearchCenter:   "Search location",
+
 		// Station card
 		MapButton:        "🗺️ OSM",
 		GoogleMapsButton: "📍 Google Maps",

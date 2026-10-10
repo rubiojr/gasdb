@@ -9,7 +9,7 @@ import (
 	"github.com/rubiojr/gasdb/pkg/api"
 )
 
-templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation string, lat, lng, radius float64, err error, suggestions []search.RadiusSuggestion, t translations.Translations) {
+templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation string, lat, lng, radius float64, err error, suggestions []search.RadiusSuggestion, resultsMap ResultsMap, t translations.Translations) {
 	@Base(t.ResultsTitle, t) {
 		<div class="results">
 			<div class="results-header">
@@ -24,7 +24,12 @@ templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation st
 				}
 				<div class="results-toolbar">
 					<p class="results-radius"><span class="text-muted">{ t.RadiusLabel }</span><strong>{ fmt.Sprintf("%.1f km", radius) }</strong></p>
-					<a href={ templ.SafeURL("/?lang=" + t.Language) } class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+					<div class="results-actions">
+						if len(stations) > 0 {
+							<button type="button" id="results-map-toggle" class="btn btn-outline-dark" aria-controls="results-map" aria-expanded="false" hidden>{ t.ShowMapButton }</button>
+						}
+						<a href={ templ.SafeURL("/?lang=" + t.Language) } class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+					</div>
 				</div>
 			</div>
 			if len(stations) == 0 && err == nil {
@@ -55,17 +60,22 @@ templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation st
 					{ t.LocationNotFound }
 				</div>
 			} else {
+				<section id="results-map" class="results-map" aria-label={ t.MapLabel } hidden>
+					<div class="results-map-canvas"></div>
+					<p class="results-map-status" role="status"></p>
+				</section>
 				<p class="results-count text-muted">{ t.StationsFound } <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> { t.StationsWithin } { fmt.Sprintf("%.1f km", radius) }</p>
-				for _, station := range stations {
-					@StationCard(station, t)
+				for i, station := range stations {
+					@StationCard(station, fmt.Sprintf("station-%d", i), t)
 				}
+				@resultsMapScript(resultsMap, t)
 			}
 		</div>
 	}
 }
 
-templ StationCard(station api.StationWithDistance, t translations.Translations) {
-	<article class="card station-card">
+templ StationCard(station api.StationWithDistance, id string, t translations.Translations) {
+	<article id={ id } class="card station-card">
 		<div class="card-body">
 			<div class="station-heading">
 				<h2 class="station-name">{ station.Station.Rotulo }</h2>
@@ -104,6 +114,178 @@ templ StationCard(station api.StationWithDistance, t translations.Translations) 
 			</div>
 		</div>
 	</article>
+}
+
+// resultsMapScript wires the map toggle. MapLibre and the map styles load on
+// the first click only, so pages that never show the map stay light.
+templ resultsMapScript(resultsMap ResultsMap, t translations.Translations) {
+	@templ.JSONScript("results-map-data", resultsMap)
+	@templ.JSONScript("results-map-text", newResultsMapText(t))
+	<script type="importmap">
+		{
+			"imports": {
+				"maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs"
+			},
+			"integrity": {
+				"https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs": "sha384-tG0qQdL7veKvVoyu6PbnmddDls/OVkTjaK9oVY5eq9afBA6zYptFui69Dx57duAh"
+			}
+		}
+	</script>
+	<script type="module">
+		const STYLESHEET = 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.css';
+		const STYLESHEET_INTEGRITY = 'sha384-yFNc3bs28S14jOJo1ZO9SnLiAmtyY2a3H9be8GkLMpDGlO5r1zZNP8fYu+fOCE/w';
+		// Popups open above the price pill rather than over it.
+		const POPUP_OFFSET = { 'bottom': [0, -32], 'bottom-left': [0, -32], 'bottom-right': [0, -32] };
+
+		const data = JSON.parse(document.getElementById('results-map-data').textContent);
+		const text = JSON.parse(document.getElementById('results-map-text').textContent);
+		const toggle = document.getElementById('results-map-toggle');
+		const panel = document.getElementById('results-map');
+		const container = panel.querySelector('.results-map-canvas');
+		const status = panel.querySelector('.results-map-status');
+		let loading = null;
+
+		toggle.addEventListener('click', function() {
+			const open = panel.hidden;
+			setOpen(open);
+			// The URL keeps the map's state, so shared links show it too.
+			const url = new URL(location.href);
+			if (open) {
+				url.searchParams.set('map', '1');
+			} else {
+				url.searchParams.delete('map');
+			}
+			history.replaceState(history.state, '', url);
+		});
+		toggle.hidden = false;
+		if (new URLSearchParams(location.search).get('map') === '1') setOpen(true);
+
+		function setOpen(open) {
+			panel.hidden = !open;
+			toggle.setAttribute('aria-expanded', String(open));
+			toggle.textContent = open ? text.hide : text.show;
+			if (open && !loading) {
+				loading = showMap().catch(function(error) {
+					console.error(error);
+					status.textContent = text.unavailable;
+					loading = null; // Try again on the next click.
+				});
+			}
+		}
+
+		function loadStylesheet() {
+			return new Promise(function(resolve, reject) {
+				const link = document.createElement('link');
+				link.rel = 'stylesheet';
+				link.href = STYLESHEET;
+				link.integrity = STYLESHEET_INTEGRITY;
+				link.crossOrigin = 'anonymous';
+				link.onload = resolve;
+				link.onerror = function() {
+					link.remove();
+					reject(new Error('Failed to load ' + STYLESHEET));
+				};
+				document.head.append(link);
+			});
+		}
+
+		async function showMap() {
+			status.textContent = text.loading;
+			const [maplibregl] = await Promise.all([import('maplibre-gl'), loadStylesheet()]);
+			const bounds = new maplibregl.LngLatBounds(data.center, data.center);
+			data.stations.forEach(function(station) { bounds.extend([station.lng, station.lat]); });
+			const map = new maplibregl.Map({
+				container: container,
+				style: data.style,
+				bounds: bounds,
+				fitBoundsOptions: { padding: 48, maxZoom: 15 },
+				cooperativeGestures: true,
+				attributionControl: { compact: true },
+				locale: text.locale,
+			});
+			map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+			let loaded = false;
+			map.once('load', function() {
+				loaded = true;
+				status.textContent = '';
+				addRadius(map);
+			});
+			map.on('error', function(event) {
+				console.error(event.error);
+				if (!loaded) status.textContent = text.unavailable;
+			});
+			addMarkers(maplibregl, map);
+		}
+
+		function addRadius(map) {
+			// The container's accent-color resolves --green, which MapLibre can't
+			// read as a CSS variable.
+			const color = getComputedStyle(container).accentColor;
+			map.addSource('search-radius', { type: 'geojson', data: circle(data.center, data.radius_km) });
+			map.addLayer({ id: 'search-radius-fill', type: 'fill', source: 'search-radius', paint: { 'fill-color': color, 'fill-opacity': 0.06 } });
+			map.addLayer({ id: 'search-radius-line', type: 'line', source: 'search-radius', paint: { 'line-color': color, 'line-width': 1.5, 'line-dasharray': [3, 2] } });
+		}
+
+		function addMarkers(maplibregl, map) {
+			const center = document.createElement('div');
+			center.className = 'map-center';
+			center.setAttribute('role', 'img');
+			center.setAttribute('aria-label', text.search_center);
+			center.title = text.search_center;
+			new maplibregl.Marker({ element: center }).setLngLat(data.center).addTo(map);
+
+			const prices = data.stations.filter(function(station) { return station.price !== null; }).map(function(station) { return station.price; });
+			const lowest = Math.min.apply(null, prices);
+			// Stations come cheapest first; adding them in reverse keeps the cheapest on top.
+			for (let i = data.stations.length - 1; i >= 0; i--) {
+				const station = data.stations[i];
+				const price = station.price === null ? text.not_available : station.price.toFixed(3) + ' €';
+				const marker = document.createElement('div');
+				marker.className = 'map-marker';
+				marker.classList.toggle('map-marker-lowest', station.price === lowest);
+				marker.classList.toggle('map-marker-unpriced', station.price === null);
+				marker.setAttribute('role', 'button');
+				marker.setAttribute('aria-label', station.name + ': ' + price);
+				marker.textContent = price;
+				const popup = new maplibregl.Popup({ offset: POPUP_OFFSET, maxWidth: 'min(20rem, calc(100% - 1.5rem))' }).setDOMContent(popupContent(i));
+				popup.on('open', function() {
+					// Focusing the popup scrolls the clipped map container to show it.
+					// Undo that, and when the popup doesn't fit, pan its marker near the
+					// bottom of the map, leaving room above for the popup.
+					container.scrollTop = 0;
+					container.scrollLeft = 0;
+					const box = popup.getElement().getBoundingClientRect();
+					const frame = container.getBoundingClientRect();
+					if (box.top >= frame.top && box.bottom <= frame.bottom && box.left >= frame.left && box.right <= frame.right) return;
+					map.panTo([station.lng, station.lat], { offset: [0, frame.height / 2 - 56] });
+				});
+				new maplibregl.Marker({ element: marker, anchor: 'bottom', offset: [0, -6] })
+					.setLngLat([station.lng, station.lat])
+					.setPopup(popup)
+					.addTo(map);
+			}
+		}
+
+		// The popup reuses the station's result card.
+		function popupContent(index) {
+			const body = document.getElementById('station-' + index).querySelector('.card-body').cloneNode(true);
+			body.className = 'map-popup';
+			return body;
+		}
+
+		// circle approximates the search radius as a GeoJSON polygon.
+		function circle(center, km) {
+			const steps = 96;
+			const latDegrees = km / 110.574;
+			const lngDegrees = km / (111.32 * Math.cos(center[1] * Math.PI / 180));
+			const ring = [];
+			for (let i = 0; i <= steps; i++) {
+				const angle = i / steps * 2 * Math.PI;
+				ring.push([center[0] + lngDegrees * Math.cos(angle), center[1] + latDegrees * Math.sin(angle)]);
+			}
+			return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
+		}
+	</script>
 }
 
 templ StationPrice(label, price, notAvailable string) {

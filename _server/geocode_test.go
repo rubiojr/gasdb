@@ -171,7 +171,7 @@ func TestResolvedLocationRendering(t *testing.T) {
 		t.Run(lang, func(t *testing.T) {
 			var output strings.Builder
 			tr := translations.GetTranslations(lang)
-			err := templates.ResultsPage(nil, "masnou", "el Masnou, Barcelona", 41.4797, 2.3118, 5, nil, nil, tr).Render(context.Background(), &output)
+			err := templates.ResultsPage(nil, "masnou", "el Masnou, Barcelona", 41.4797, 2.3118, 5, nil, nil, templates.ResultsMap{}, tr).Render(context.Background(), &output)
 			require.NoError(t, err)
 			assert.Contains(t, output.String(), ">masnou</strong>")
 			assert.Contains(t, output.String(), tr.ResolvedLocation)
@@ -181,9 +181,9 @@ func TestResolvedLocationRendering(t *testing.T) {
 	}
 	var output strings.Builder
 	tr := translations.GetEnglishTranslations()
-	require.NoError(t, templates.ResultsPage(nil, "query", "A & B <Village>", 41, 2, 5, nil, nil, tr).Render(context.Background(), &output))
+	require.NoError(t, templates.ResultsPage(nil, "query", "A & B <Village>", 41, 2, 5, nil, nil, templates.ResultsMap{}, tr).Render(context.Background(), &output))
 	assert.Contains(t, output.String(), "A &amp; B &lt;Village&gt;")
 	output.Reset()
-	require.NoError(t, templates.ResultsPage(nil, "", "", 41, 2, 5, nil, nil, tr).Render(context.Background(), &output))
+	require.NoError(t, templates.ResultsPage(nil, "", "", 41, 2, 5, nil, nil, templates.ResultsMap{}, tr).Render(context.Background(), &output))
 	assert.NotContains(t, output.String(), `class="results-location resolved-location"`)
 }

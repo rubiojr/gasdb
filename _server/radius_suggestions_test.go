@@ -24,7 +24,7 @@ func TestRadiusSuggestionsRendering(t *testing.T) {
 		t.Run(lang, func(t *testing.T) {
 			tr := translations.GetTranslations(lang)
 			var output strings.Builder
-			err := templates.ResultsPage(nil, "Duruelo", "Duruelo de la Sierra, Soria", 41.954, -2.932, 5, nil, suggestions, tr).Render(context.Background(), &output)
+			err := templates.ResultsPage(nil, "Duruelo", "Duruelo de la Sierra, Soria", 41.954, -2.932, 5, nil, suggestions, templates.ResultsMap{}, tr).Render(context.Background(), &output)
 			require.NoError(t, err)
 			assert.Contains(t, output.String(), tr.ExpandRadiusTitle)
 			assert.Contains(t, output.String(), fmt.Sprintf(tr.SearchWithinRadius, 10))
@@ -50,7 +50,7 @@ func TestRadiusSuggestionsOnlyAppearForEmptySuccessfulSearches(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var output strings.Builder
-			err := templates.ResultsPage(tt.stations, "query", "", 41, 2, 5, tt.err, tt.suggestions, translations.GetEnglishTranslations()).Render(context.Background(), &output)
+			err := templates.ResultsPage(tt.stations, "query", "", 41, 2, 5, tt.err, tt.suggestions, templates.ResultsMap{}, translations.GetEnglishTranslations()).Render(context.Background(), &output)
 			require.NoError(t, err)
 			assert.NotContains(t, output.String(), `class="radius-suggestions"`)
 		})

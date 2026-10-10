@@ -62,6 +62,25 @@ func GetSpanishTranslations() Translations {
 		OneStation:                "1 gasolinera",
 		StationCount:              "%d gasolineras",
 
+		// Results map
+		ShowMapButton:  "🗺️ Ver mapa",
+		HideMapButton:  "🗺️ Ocultar mapa",
+		MapLabel:       "Mapa de gasolineras cercanas",
+		MapLoading:     "Cargando mapa...",
+		MapUnavailable: "No se pudo cargar el mapa. Inténtalo de nuevo más tarde.",
+		SearchCenter:   "Ubicación de búsqueda",
+		MapLocale: map[string]string{
+			"AttributionControl.MapFeedback":             "Comentarios sobre el mapa",
+			"AttributionControl.ToggleAttribution":       "Mostrar u ocultar la atribución",
+			"CooperativeGesturesHandler.MacHelpText":     "Usa ⌘ + desplazamiento para hacer zoom en el mapa",
+			"CooperativeGesturesHandler.MobileHelpText":  "Usa dos dedos para mover el mapa",
+			"CooperativeGesturesHandler.WindowsHelpText": "Usa Ctrl + rueda del ratón para hacer zoom en el mapa",
+			"Map.Title":                 "Mapa",
+			"NavigationControl.ZoomIn":  "Acercar",
+			"NavigationControl.ZoomOut": "Alejar",
+			"Popup.Close":               "Cerrar",
+		},
+
 		// Station card
 		MapButton:        "🗺️ OSM",
 		GoogleMapsButton: "📍 Google Maps",

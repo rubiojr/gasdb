@@ -32,6 +32,7 @@ The server will start on `http://127.0.0.1:8080` by default.
 
 - `-port`: HTTP server port (default: 8080)
 - `-db`: Path to SQLite database file (default: fuel_prices.db)
+- `-map-style`: MapLibre style URL for the results map (default: https://tiles.openfreemap.org/styles/positron)
 - `-version`: Print the server version and exit without opening the database
 
 ### Versioning
