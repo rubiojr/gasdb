@@ -74,16 +74,40 @@ type Translations struct {
 	MapLocale map[string]string
 
 	// Station card
-	MapButton        string
-	GoogleMapsButton string
-	MapAltOSM        string
-	MapAltGoogle     string
-	KmAway           string
-	Gasoline95       string
-	Gasoline98       string
-	Diesel           string
-	PremiumDiesel    string
-	NotAvailable     string
+	MapButton         string
+	GoogleMapsButton  string
+	MapAltOSM         string
+	MapAltGoogle      string
+	StationPageButton string
+	StationPageAlt    string
+	ShareButton       string
+	ShareAlt          string
+	LinkCopied        string
+	KmAway            string
+	Gasoline95        string
+	Gasoline98        string
+	Diesel            string
+	PremiumDiesel     string
+	NotAvailable      string
+
+	// Station page
+	StationNotFoundTitle string
+	StationNotFound      string
+	StationMapLabel      string
+	StationPrices        string
+	OpeningHours         string
+
+	// Fuels only listed on the station page, when sold
+	Gasoline95E10     string
+	Gasoline95Premium string
+	Gasoline98E10     string
+	DieselB           string
+	Biodiesel         string
+	Bioethanol        string
+	LPG               string
+	CNG               string
+	LNG               string
+	Hydrogen          string
 
 	// Footer
 	FooterCopyright string

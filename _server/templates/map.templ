@@ -1,0 +1,10 @@
+package templates
+
+import "github.com/rubiojr/gasdb/_server/translations"
+
+// mapAssets renders what every map script needs: the import map for
+// MapLibre and the map's translated strings, as #map-text.
+templ mapAssets(t translations.Translations) {
+	@templ.JSONScript("maplibre-imports", mapLibreImports).WithType("importmap")
+	@templ.JSONScript("map-text", newMapText(t))
+}

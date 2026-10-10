@@ -7,7 +7,7 @@ import (
 )
 
 templ Home(lastUpdate *time.Time, summary pricesummary.Summary, t translations.Translations) {
-	@Base(t.HomeTitle, t) {
+	@Base(t.HomeTitle, "", t) {
 		<div class="form home-screen">
 			<div class="form-body">
 				<h1 class="visually-hidden">{ t.HomeHeading }</h1>

@@ -6,7 +6,8 @@ import (
 	"github.com/rubiojr/gasdb/_server/translations"
 )
 
-templ Base(title string, t translations.Translations) {
+// Base is the page layout. A description also feeds link previews.
+templ Base(title, description string, t translations.Translations) {
 	<!DOCTYPE html>
 	<html lang={ t.Language }>
 		<head>
@@ -14,6 +15,13 @@ templ Base(title string, t translations.Translations) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="color-scheme" content="light dark"/>
 			<title>{ title }</title>
+			if description != "" {
+				<meta name="description" content={ description }/>
+				<meta property="og:type" content="website"/>
+				<meta property="og:site_name" content="GasDB"/>
+				<meta property="og:title" content={ title }/>
+				<meta property="og:description" content={ description }/>
+			}
 			<script>
 				// Apply a saved choice before painting; otherwise CSS follows the OS.
 				try {
@@ -286,11 +294,11 @@ templ Base(title string, t translations.Translations) {
 					gap: 0.5rem;
 				}
 
-				/* Results map */
+				/* Maps */
 				.results-map {
 					margin-bottom: 1.25rem;
 				}
-				.results-map-canvas {
+				.map-canvas {
 					/* The map style is light, so its markers and popups are too. */
 					color-scheme: light;
 					height: min(60vh, 28rem);
@@ -300,15 +308,15 @@ templ Base(title string, t translations.Translations) {
 					/* The search radius is drawn in this color. */
 					accent-color: var(--green);
 				}
-				.results-map .maplibregl-map {
+				.map-canvas.maplibregl-map {
 					font-family: inherit;
 				}
-				.results-map-status {
+				.map-status {
 					margin-top: 0.5rem;
 					font-size: 0.875rem;
 					color: var(--text-muted);
 				}
-				.results-map-status:empty {
+				.map-status:empty {
 					display: none;
 				}
 				.map-marker {
@@ -418,6 +426,83 @@ templ Base(title string, t translations.Translations) {
 				}
 				.map-popup .station-map-links .btn {
 					min-height: 2.25rem;
+				}
+
+				/* Station page */
+				.station-page-header h1 {
+					margin-bottom: 0.5rem;
+					overflow-wrap: anywhere;
+				}
+				.station-page-header .station-address {
+					margin: 0 0 1.25rem;
+				}
+				.station-map {
+					margin-bottom: 1.5rem;
+				}
+				.station-map .map-canvas {
+					height: min(50vh, 20rem);
+				}
+				.station-page-prices h2 {
+					margin-bottom: 0.75rem;
+					font-size: 1.125rem;
+				}
+				.station-page-prices .price-data-date {
+					margin-top: 0.75rem;
+				}
+				.station-details {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 0.25rem 0.5rem;
+					margin-top: 1.25rem;
+					font-size: 0.9375rem;
+				}
+				.station-details dt {
+					color: var(--text-muted);
+				}
+				.station-details dd {
+					font-weight: 600;
+					overflow-wrap: anywhere;
+				}
+				.station-page .station-map-links {
+					margin-top: 1.25rem;
+					margin-left: 0;
+				}
+				.station-page-actions {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 0.5rem;
+					margin-top: 1.25rem;
+				}
+				.station-page-actions .btn {
+					display: flex;
+					align-items: center;
+					min-height: 2.75rem;
+					font-size: 0.875rem;
+					white-space: normal;
+				}
+
+				/* Notice after copying a share link */
+				.toast {
+					position: fixed;
+					z-index: 10;
+					bottom: 1.5rem;
+					left: 50%;
+					max-width: calc(100% - 2rem);
+					margin: 0;
+					padding: 0.625rem 1rem;
+					transform: translateX(-50%);
+					border-radius: 999px;
+					background-color: var(--text-dark);
+					color: var(--page-bg);
+					box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+					font-size: 0.875rem;
+					font-weight: 500;
+					pointer-events: none;
+				}
+				/* Stays rendered while empty, so screen readers announce new text. */
+				.toast:empty {
+					padding: 0;
+					box-shadow: none;
 				}
 				.radius-suggestions {
 					margin: 1.25rem 0;
@@ -722,7 +807,7 @@ templ Base(title string, t translations.Translations) {
 				}
 				.station-map-links {
 					display: grid;
-					grid-template-columns: repeat(2, minmax(0, 1fr));
+					grid-template-columns: repeat(3, minmax(0, 1fr));
 					gap: 0.5rem;
 					margin-top: 1rem;
 				}
@@ -899,7 +984,7 @@ templ Base(title string, t translations.Translations) {
 						grid-template-columns: repeat(4, minmax(0, 1fr));
 					}
 					.station-map-links {
-						max-width: 20rem;
+						max-width: 28rem;
 						margin-left: auto;
 					}
 				}
@@ -1047,6 +1132,7 @@ templ Base(title string, t translations.Translations) {
 					<p>© { time.Now().Year() } { t.FooterCopyright } · { version.String() }</p>
 				</footer>
 			</div>
+			<p id="toast" class="toast" role="status" data-copied={ t.LinkCopied }></p>
 			<script>
 				(function() {
 					const root = document.documentElement;
@@ -1076,6 +1162,32 @@ templ Base(title string, t translations.Translations) {
 					});
 					updateButton();
 					button.hidden = false;
+				})();
+				(function() {
+					const toast = document.getElementById('toast');
+					let toastTimer;
+					function showToast(message) {
+						toast.textContent = message;
+						clearTimeout(toastTimer);
+						toastTimer = setTimeout(function() { toast.textContent = ''; }, 2500);
+					}
+					// Share links copy their URL and open the system share sheet when
+					// there is one. Without the Clipboard API they just open the page.
+					document.addEventListener('click', function(event) {
+						const link = event.target.closest('a[data-share]');
+						if (!link || !navigator.clipboard) return;
+						event.preventDefault();
+						const url = link.href;
+						navigator.clipboard.writeText(url).then(function() {
+							showToast(toast.dataset.copied);
+						}, function() {
+							if (!navigator.share) location.href = url;
+						});
+						// Both calls need this click's user activation, so neither waits.
+						if (navigator.share) {
+							navigator.share({ title: link.dataset.shareTitle, url: url }).catch(function() {});
+						}
+					});
 				})();
 			</script>
 		</body>

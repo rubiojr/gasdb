@@ -53,7 +53,9 @@ func TestResultsMapRendering(t *testing.T) {
 			page := output.String()
 			// Without JavaScript, the toggle stays hidden.
 			assert.Contains(t, page, `aria-controls="results-map" aria-expanded="false" hidden>`+tr.ShowMapButton+`</button>`)
-			assert.Contains(t, page, `id="results-map" class="results-map" aria-label="`+tr.MapLabel+`" hidden>`)
+			assert.Contains(t, page, `id="results-map" class="results-map" aria-label="`+tr.MapLabel+`"`)
+			assert.Contains(t, page, `data-stylesheet-integrity="sha384-`)
+			assert.Contains(t, page, `<script id="maplibre-imports" type="importmap">`)
 			assert.Contains(t, page, `id="station-0" class="card station-card"`)
 			assert.Contains(t, page, `id="station-1" class="card station-card"`)
 			assert.NotContains(t, page, "FIRST </script>", "station names are escaped, in the JSON too")
@@ -62,7 +64,7 @@ func TestResultsMapRendering(t *testing.T) {
 			require.NoError(t, json.Unmarshal([]byte(jsonScript(t, page, "results-map-data")), &data))
 			assert.Equal(t, resultsMap, data)
 			var text map[string]any
-			require.NoError(t, json.Unmarshal([]byte(jsonScript(t, page, "results-map-text")), &text))
+			require.NoError(t, json.Unmarshal([]byte(jsonScript(t, page, "map-text")), &text))
 			assert.Equal(t, tr.HideMapButton, text["hide"])
 			assert.Equal(t, tr.NotAvailable, text["not_available"])
 			if lang == "es" {

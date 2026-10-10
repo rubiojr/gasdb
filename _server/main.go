@@ -116,6 +116,11 @@ func main() {
 		renderHome(w, r, storage, logger.Logger, t)
 	})
 
+	r.Get("/station/{id}", func(w http.ResponseWriter, r *http.Request) {
+		t := translations.GetTranslations(translations.GetLanguageFromQuery(r.URL.Query().Get("lang")))
+		renderStation(w, r, storage, logger.Logger, chi.URLParam(r, "id"), *mapStyle, t)
+	})
+
 	r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 

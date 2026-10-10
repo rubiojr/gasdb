@@ -1,0 +1,118 @@
+package templates
+
+import (
+	"github.com/rubiojr/gasdb/_server/translations"
+	"github.com/rubiojr/gasdb/pkg/api"
+)
+
+// StationPage is the shareable page of one station. published is the date
+// of the price data.
+templ StationPage(station *api.GasStation, published string, stationMap StationMap, t translations.Translations) {
+	@Base("GasDB — "+stationTitle(station), stationDescription(station, t), t) {
+		<article class="station-page">
+			<header class="station-page-header">
+				<h1>{ station.Rotulo }</h1>
+				<p class="station-address text-muted">
+					{ station.Direccion }
+					<br/>
+					{ stationLocality(station) }
+				</p>
+			</header>
+			<section class="station-map" aria-label={ t.StationMapLabel }>
+				<div class="map-canvas"></div>
+				<p class="map-status" role="status"></p>
+			</section>
+			<section class="station-page-prices" aria-labelledby="station-prices-heading">
+				<h2 id="station-prices-heading">{ t.StationPrices }</h2>
+				<dl class="station-prices">
+					for _, price := range mainPrices(station, t) {
+						@StationPrice(price.Label, price.Price, t.NotAvailable)
+					}
+					for _, price := range extraPrices(station, t) {
+						@StationPrice(price.Label, price.Price, t.NotAvailable)
+					}
+				</dl>
+				if published != "" {
+					<p class="price-data-date text-muted"><small>{ t.PriceDataDate } { published }</small></p>
+				}
+			</section>
+			if station.Horario != "" {
+				<dl class="station-details">
+					<dt>{ t.OpeningHours }</dt>
+					<dd>{ station.Horario }</dd>
+				</dl>
+			}
+			@StationLinks(station, t) {
+				// Base's script copies and shares this page's link; without
+				// JavaScript, the link just reopens the page.
+				<a
+					href={ stationURL(station, t) }
+					class="btn btn-map"
+					aria-label={ t.ShareAlt }
+					data-share
+					data-share-title={ stationTitle(station) }
+				>
+					{ t.ShareButton }
+				</a>
+			}
+			<div class="station-page-actions">
+				<a href={ nearbyURL(station, t) } class="btn btn-outline-dark">{ t.NearbyStations }</a>
+				<a href={ templ.SafeURL("/?lang=" + t.Language) } class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+			</div>
+		</article>
+		@stationMapScript(stationMap, t)
+	}
+}
+
+// StationMissingPage explains why a station page can't be shown.
+templ StationMissingPage(title, message string, t translations.Translations) {
+	@Base(title, "", t) {
+		<div class="station-page">
+			<div class="alert alert-info">{ message }</div>
+			<a href={ templ.SafeURL("/?lang=" + t.Language) } class="btn btn-outline-dark">{ t.NewSearchButton }</a>
+		</div>
+	}
+}
+
+templ stationMapScript(stationMap StationMap, t translations.Translations) {
+	<link rel="stylesheet" href={ mapLibreStylesheet } integrity={ mapLibreStylesheetIntegrity } crossorigin="anonymous"/>
+	@templ.JSONScript("station-map-data", stationMap)
+	@mapAssets(t)
+	<script type="module">
+		const data = JSON.parse(document.getElementById('station-map-data').textContent);
+		const text = JSON.parse(document.getElementById('map-text').textContent);
+		const container = document.querySelector('.station-map .map-canvas');
+		const status = document.querySelector('.station-map .map-status');
+		status.textContent = text.loading;
+		try {
+			const maplibregl = await import('maplibre-gl');
+			const map = new maplibregl.Map({
+				container: container,
+				style: data.style,
+				center: [data.lng, data.lat],
+				zoom: 15,
+				cooperativeGestures: true,
+				attributionControl: { compact: true },
+				locale: text.locale,
+			});
+			map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+			// The container's accent-color resolves --green, which MapLibre can't
+			// read as a CSS variable.
+			new maplibregl.Marker({ color: getComputedStyle(container).accentColor })
+				.setLngLat([data.lng, data.lat])
+				.addTo(map);
+			let loaded = false;
+			map.once('load', function() {
+				loaded = true;
+				status.textContent = '';
+			});
+			map.on('error', function(event) {
+				console.error(event.error);
+				if (!loaded) status.textContent = text.unavailable;
+			});
+		} catch (error) {
+			console.error(error);
+			status.textContent = text.unavailable;
+		}
+	</script>
+}

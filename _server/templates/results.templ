@@ -10,7 +10,7 @@ import (
 )
 
 templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation string, lat, lng, radius float64, err error, suggestions []search.RadiusSuggestion, resultsMap ResultsMap, t translations.Translations) {
-	@Base(t.ResultsTitle, t) {
+	@Base(t.ResultsTitle, "", t) {
 		<div class="results">
 			<div class="results-header">
 				<h1>{ t.NearbyStations }</h1>
@@ -60,9 +60,16 @@ templ ResultsPage(stations []api.StationWithDistance, query, resolvedLocation st
 					{ t.LocationNotFound }
 				</div>
 			} else {
-				<section id="results-map" class="results-map" aria-label={ t.MapLabel } hidden>
-					<div class="results-map-canvas"></div>
-					<p class="results-map-status" role="status"></p>
+				<section
+					id="results-map"
+					class="results-map"
+					aria-label={ t.MapLabel }
+					data-stylesheet={ mapLibreStylesheet }
+					data-stylesheet-integrity={ mapLibreStylesheetIntegrity }
+					hidden
+				>
+					<div class="map-canvas"></div>
+					<p class="map-status" role="status"></p>
 				</section>
 				<p class="results-count text-muted">{ t.StationsFound } <strong>{ fmt.Sprintf("%d", len(stations)) }</strong> { t.StationsWithin } { fmt.Sprintf("%.1f km", radius) }</p>
 				for i, station := range stations {
@@ -88,61 +95,61 @@ templ StationCard(station api.StationWithDistance, id string, t translations.Tra
 				@StationPrice(t.Diesel, station.Station.PrecioGasoleoA, t.NotAvailable)
 				@StationPrice(t.PremiumDiesel, station.Station.PrecioGasoleoPremium, t.NotAvailable)
 			</dl>
-			<div class="station-map-links">
-				<a
-					href={ templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
-							formatDecimal(station.Station.Latitud),
-							formatDecimal(station.Station.Longitud))) }
-					target="_blank"
-					rel="noopener noreferrer"
-					class="btn btn-map"
-					aria-label={ t.MapAltOSM }
-				>
-					{ t.MapButton }
-				</a>
-				<a
-					href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
-							formatDecimal(station.Station.Latitud),
-							formatDecimal(station.Station.Longitud))) }
-					target="_blank"
-					rel="noopener noreferrer"
-					class="btn btn-map"
-					aria-label={ t.MapAltGoogle }
-				>
-					{ t.GoogleMapsButton }
-				</a>
-			</div>
+			@StationLinks(station.Station, t) {
+				if station.Station.IDEESS != "" {
+					<a href={ stationURL(station.Station, t) } class="btn btn-map" aria-label={ t.StationPageAlt }>
+						{ t.StationPageButton }
+					</a>
+				}
+			}
 		</div>
 	</article>
+}
+
+// StationLinks are a station's map links, followed by its children.
+templ StationLinks(station *api.GasStation, t translations.Translations) {
+	<div class="station-map-links">
+		<a
+			href={ templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
+					formatDecimal(station.Latitud),
+					formatDecimal(station.Longitud))) }
+			target="_blank"
+			rel="noopener noreferrer"
+			class="btn btn-map"
+			aria-label={ t.MapAltOSM }
+		>
+			{ t.MapButton }
+		</a>
+		<a
+			href={ templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
+					formatDecimal(station.Latitud),
+					formatDecimal(station.Longitud))) }
+			target="_blank"
+			rel="noopener noreferrer"
+			class="btn btn-map"
+			aria-label={ t.MapAltGoogle }
+		>
+			{ t.GoogleMapsButton }
+		</a>
+		{ children... }
+	</div>
 }
 
 // resultsMapScript wires the map toggle. MapLibre and the map styles load on
 // the first click only, so pages that never show the map stay light.
 templ resultsMapScript(resultsMap ResultsMap, t translations.Translations) {
 	@templ.JSONScript("results-map-data", resultsMap)
-	@templ.JSONScript("results-map-text", newResultsMapText(t))
-	<script type="importmap">
-		{
-			"imports": {
-				"maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs"
-			},
-			"integrity": {
-				"https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs": "sha384-tG0qQdL7veKvVoyu6PbnmddDls/OVkTjaK9oVY5eq9afBA6zYptFui69Dx57duAh"
-			}
-		}
-	</script>
+	@mapAssets(t)
 	<script type="module">
-		const STYLESHEET = 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.css';
-		const STYLESHEET_INTEGRITY = 'sha384-yFNc3bs28S14jOJo1ZO9SnLiAmtyY2a3H9be8GkLMpDGlO5r1zZNP8fYu+fOCE/w';
 		// Popups open above the price pill rather than over it.
 		const POPUP_OFFSET = { 'bottom': [0, -32], 'bottom-left': [0, -32], 'bottom-right': [0, -32] };
 
 		const data = JSON.parse(document.getElementById('results-map-data').textContent);
-		const text = JSON.parse(document.getElementById('results-map-text').textContent);
+		const text = JSON.parse(document.getElementById('map-text').textContent);
 		const toggle = document.getElementById('results-map-toggle');
 		const panel = document.getElementById('results-map');
-		const container = panel.querySelector('.results-map-canvas');
-		const status = panel.querySelector('.results-map-status');
+		const container = panel.querySelector('.map-canvas');
+		const status = panel.querySelector('.map-status');
 		let loading = null;
 
 		toggle.addEventListener('click', function() {
@@ -177,13 +184,13 @@ templ resultsMapScript(resultsMap ResultsMap, t translations.Translations) {
 			return new Promise(function(resolve, reject) {
 				const link = document.createElement('link');
 				link.rel = 'stylesheet';
-				link.href = STYLESHEET;
-				link.integrity = STYLESHEET_INTEGRITY;
+				link.href = panel.dataset.stylesheet;
+				link.integrity = panel.dataset.stylesheetIntegrity;
 				link.crossOrigin = 'anonymous';
 				link.onload = resolve;
 				link.onerror = function() {
 					link.remove();
-					reject(new Error('Failed to load ' + STYLESHEET));
+					reject(new Error('Failed to load ' + link.href));
 				};
 				document.head.append(link);
 			});

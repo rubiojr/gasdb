@@ -391,65 +391,91 @@ func ResultsPage(stations []api.StationWithDistance, query, resolvedLocation str
 				var templ_7745c5c3_Var24 string
 				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapLabel)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 63, Col: 73}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 66, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hidden><div class=\"results-map-canvas\"></div><p class=\"results-map-status\" role=\"status\"></p></section><p class=\"results-count text-muted\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" data-stylesheet=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var25 string
-				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationsFound)
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(mapLibreStylesheet)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 67, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 67, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " <strong>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" data-stylesheet-integrity=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var26 string
-				templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(stations)))
+				templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(mapLibreStylesheetIntegrity)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 67, Col: 102}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 68, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</strong> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" hidden><div class=\"map-canvas\"></div><p class=\"map-status\" role=\"status\"></p></section><p class=\"results-count text-muted\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var27 string
-				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationsWithin)
+				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationsFound)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 67, Col: 132}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 74, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " <strong>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var28 string
-				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f km", radius))
+				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(stations)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 67, Col: 167}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 74, Col: 102}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</strong> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var29 string
+				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationsWithin)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 74, Col: 132}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var30 string
+				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f km", radius))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 74, Col: 167}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -459,7 +485,7 @@ func ResultsPage(stations []api.StationWithDistance, query, resolvedLocation str
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -468,13 +494,13 @@ func ResultsPage(stations []api.StationWithDistance, query, resolvedLocation str
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Base(t.ResultsTitle, t).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Base(t.ResultsTitle, "", t).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -498,77 +524,77 @@ func StationCard(station api.StationWithDistance, id string, t translations.Tran
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
+		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var31 == nil {
+			templ_7745c5c3_Var31 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<article id=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var30 string
-		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(id)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 78, Col: 17}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" class=\"card station-card\"><div class=\"card-body\"><div class=\"station-heading\"><h2 class=\"station-name\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var31 string
-		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(station.Station.Rotulo)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 81, Col: 53}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</h2><span class=\"station-distance\" aria-label=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<article id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var32 string
-		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f %s", station.Distance/1000, t.KmAway))
+		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 82, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 85, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" class=\"card station-card\"><div class=\"card-body\"><div class=\"station-heading\"><h2 class=\"station-name\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var33 string
-		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f km", station.Distance/1000))
+		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(station.Station.Rotulo)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 82, Col: 153}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 88, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</span></div><p class=\"station-address text-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</h2><span class=\"station-distance\" aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var34 string
-		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(station.Station.Direccion)
+		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f %s", station.Distance/1000, t.KmAway))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 84, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 89, Col: 103}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</p><dl class=\"station-prices\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var35 string
+		templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f km", station.Distance/1000))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 89, Col: 153}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</span></div><p class=\"station-address text-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var36 string
+		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(station.Station.Direccion)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 91, Col: 68}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</p><dl class=\"station-prices\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -588,89 +614,194 @@ func StationCard(station api.StationWithDistance, id string, t translations.Tran
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</dl><div class=\"station-map-links\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</dl>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var35 templ.SafeURL
-		templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
-			formatDecimal(station.Station.Latitud),
-			formatDecimal(station.Station.Longitud))))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 95, Col: 48}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn btn-map\" aria-label=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var36 string
-		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapAltOSM)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 99, Col: 29}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var37 string
-		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapButton)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 101, Col: 18}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</a> <a href=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var38 templ.SafeURL
-		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
-			formatDecimal(station.Station.Latitud),
-			formatDecimal(station.Station.Longitud))))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 106, Col: 48}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn btn-map\" aria-label=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var39 string
-		templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapAltGoogle)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 110, Col: 32}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+		templ_7745c5c3_Var37 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			if station.Station.IDEESS != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var38 templ.SafeURL
+				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinURLErrs(stationURL(station.Station, t))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 100, Col: 45}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" class=\"btn btn-map\" aria-label=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var39 string
+				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationPageAlt)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 100, Col: 97}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var40 string
+				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(t.StationPageButton)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 101, Col: 27}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</a>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = StationLinks(station.Station, t).Render(templ.WithChildren(ctx, templ_7745c5c3_Var37), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div></article>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var40 string
-		templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(t.GoogleMapsButton)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 112, Col: 25}
+		return nil
+	})
+}
+
+// StationLinks are a station's map links, followed by its children.
+func StationLinks(station *api.GasStation, t translations.Translations) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var41 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var41 == nil {
+			templ_7745c5c3_Var41 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<div class=\"station-map-links\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</a></div></div></article>")
+		var templ_7745c5c3_Var42 templ.SafeURL
+		templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16",
+			formatDecimal(station.Latitud),
+			formatDecimal(station.Longitud))))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 115, Col: 38}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn btn-map\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var43 string
+		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapAltOSM)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 119, Col: 27}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var44 string
+		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapButton)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 121, Col: 16}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</a> <a href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var45 templ.SafeURL
+		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("https://www.google.com/maps?q=%s,%s",
+			formatDecimal(station.Latitud),
+			formatDecimal(station.Longitud))))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 126, Col: 38}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn btn-map\" aria-label=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var46 string
+		templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(t.MapAltGoogle)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 130, Col: 30}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var47 string
+		templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.JoinStringErrs(t.GoogleMapsButton)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 132, Col: 23}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var47))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "</a>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ_7745c5c3_Var41.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -696,20 +827,20 @@ func resultsMapScript(resultsMap ResultsMap, t translations.Translations) templ.
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var41 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var41 == nil {
-			templ_7745c5c3_Var41 = templ.NopComponent
+		templ_7745c5c3_Var48 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var48 == nil {
+			templ_7745c5c3_Var48 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templ.JSONScript("results-map-data", resultsMap).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.JSONScript("results-map-text", newResultsMapText(t)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = mapAssets(t).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<script type=\"importmap\">\n\t\t{\n\t\t\t\"imports\": {\n\t\t\t\t\"maplibre-gl\": \"https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs\"\n\t\t\t},\n\t\t\t\"integrity\": {\n\t\t\t\t\"https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.mjs\": \"sha384-tG0qQdL7veKvVoyu6PbnmddDls/OVkTjaK9oVY5eq9afBA6zYptFui69Dx57duAh\"\n\t\t\t}\n\t\t}\n\t</script><script type=\"module\">\n\t\tconst STYLESHEET = 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.13.0/dist/maplibre-gl.css';\n\t\tconst STYLESHEET_INTEGRITY = 'sha384-yFNc3bs28S14jOJo1ZO9SnLiAmtyY2a3H9be8GkLMpDGlO5r1zZNP8fYu+fOCE/w';\n\t\t// Popups open above the price pill rather than over it.\n\t\tconst POPUP_OFFSET = { 'bottom': [0, -32], 'bottom-left': [0, -32], 'bottom-right': [0, -32] };\n\n\t\tconst data = JSON.parse(document.getElementById('results-map-data').textContent);\n\t\tconst text = JSON.parse(document.getElementById('results-map-text').textContent);\n\t\tconst toggle = document.getElementById('results-map-toggle');\n\t\tconst panel = document.getElementById('results-map');\n\t\tconst container = panel.querySelector('.results-map-canvas');\n\t\tconst status = panel.querySelector('.results-map-status');\n\t\tlet loading = null;\n\n\t\ttoggle.addEventListener('click', function() {\n\t\t\tconst open = panel.hidden;\n\t\t\tsetOpen(open);\n\t\t\t// The URL keeps the map's state, so shared links show it too.\n\t\t\tconst url = new URL(location.href);\n\t\t\tif (open) {\n\t\t\t\turl.searchParams.set('map', '1');\n\t\t\t} else {\n\t\t\t\turl.searchParams.delete('map');\n\t\t\t}\n\t\t\thistory.replaceState(history.state, '', url);\n\t\t});\n\t\ttoggle.hidden = false;\n\t\tif (new URLSearchParams(location.search).get('map') === '1') setOpen(true);\n\n\t\tfunction setOpen(open) {\n\t\t\tpanel.hidden = !open;\n\t\t\ttoggle.setAttribute('aria-expanded', String(open));\n\t\t\ttoggle.textContent = open ? text.hide : text.show;\n\t\t\tif (open && !loading) {\n\t\t\t\tloading = showMap().catch(function(error) {\n\t\t\t\t\tconsole.error(error);\n\t\t\t\t\tstatus.textContent = text.unavailable;\n\t\t\t\t\tloading = null; // Try again on the next click.\n\t\t\t\t});\n\t\t\t}\n\t\t}\n\n\t\tfunction loadStylesheet() {\n\t\t\treturn new Promise(function(resolve, reject) {\n\t\t\t\tconst link = document.createElement('link');\n\t\t\t\tlink.rel = 'stylesheet';\n\t\t\t\tlink.href = STYLESHEET;\n\t\t\t\tlink.integrity = STYLESHEET_INTEGRITY;\n\t\t\t\tlink.crossOrigin = 'anonymous';\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = function() {\n\t\t\t\t\tlink.remove();\n\t\t\t\t\treject(new Error('Failed to load ' + STYLESHEET));\n\t\t\t\t};\n\t\t\t\tdocument.head.append(link);\n\t\t\t});\n\t\t}\n\n\t\tasync function showMap() {\n\t\t\tstatus.textContent = text.loading;\n\t\t\tconst [maplibregl] = await Promise.all([import('maplibre-gl'), loadStylesheet()]);\n\t\t\tconst bounds = new maplibregl.LngLatBounds(data.center, data.center);\n\t\t\tdata.stations.forEach(function(station) { bounds.extend([station.lng, station.lat]); });\n\t\t\tconst map = new maplibregl.Map({\n\t\t\t\tcontainer: container,\n\t\t\t\tstyle: data.style,\n\t\t\t\tbounds: bounds,\n\t\t\t\tfitBoundsOptions: { padding: 48, maxZoom: 15 },\n\t\t\t\tcooperativeGestures: true,\n\t\t\t\tattributionControl: { compact: true },\n\t\t\t\tlocale: text.locale,\n\t\t\t});\n\t\t\tmap.addControl(new maplibregl.NavigationControl({ showCompass: false }));\n\t\t\tlet loaded = false;\n\t\t\tmap.once('load', function() {\n\t\t\t\tloaded = true;\n\t\t\t\tstatus.textContent = '';\n\t\t\t\taddRadius(map);\n\t\t\t});\n\t\t\tmap.on('error', function(event) {\n\t\t\t\tconsole.error(event.error);\n\t\t\t\tif (!loaded) status.textContent = text.unavailable;\n\t\t\t});\n\t\t\taddMarkers(maplibregl, map);\n\t\t}\n\n\t\tfunction addRadius(map) {\n\t\t\t// The container's accent-color resolves --green, which MapLibre can't\n\t\t\t// read as a CSS variable.\n\t\t\tconst color = getComputedStyle(container).accentColor;\n\t\t\tmap.addSource('search-radius', { type: 'geojson', data: circle(data.center, data.radius_km) });\n\t\t\tmap.addLayer({ id: 'search-radius-fill', type: 'fill', source: 'search-radius', paint: { 'fill-color': color, 'fill-opacity': 0.06 } });\n\t\t\tmap.addLayer({ id: 'search-radius-line', type: 'line', source: 'search-radius', paint: { 'line-color': color, 'line-width': 1.5, 'line-dasharray': [3, 2] } });\n\t\t}\n\n\t\tfunction addMarkers(maplibregl, map) {\n\t\t\tconst center = document.createElement('div');\n\t\t\tcenter.className = 'map-center';\n\t\t\tcenter.setAttribute('role', 'img');\n\t\t\tcenter.setAttribute('aria-label', text.search_center);\n\t\t\tcenter.title = text.search_center;\n\t\t\tnew maplibregl.Marker({ element: center }).setLngLat(data.center).addTo(map);\n\n\t\t\tconst prices = data.stations.filter(function(station) { return station.price !== null; }).map(function(station) { return station.price; });\n\t\t\tconst lowest = Math.min.apply(null, prices);\n\t\t\t// Stations come cheapest first; adding them in reverse keeps the cheapest on top.\n\t\t\tfor (let i = data.stations.length - 1; i >= 0; i--) {\n\t\t\t\tconst station = data.stations[i];\n\t\t\t\tconst price = station.price === null ? text.not_available : station.price.toFixed(3) + ' €';\n\t\t\t\tconst marker = document.createElement('div');\n\t\t\t\tmarker.className = 'map-marker';\n\t\t\t\tmarker.classList.toggle('map-marker-lowest', station.price === lowest);\n\t\t\t\tmarker.classList.toggle('map-marker-unpriced', station.price === null);\n\t\t\t\tmarker.setAttribute('role', 'button');\n\t\t\t\tmarker.setAttribute('aria-label', station.name + ': ' + price);\n\t\t\t\tmarker.textContent = price;\n\t\t\t\tconst popup = new maplibregl.Popup({ offset: POPUP_OFFSET, maxWidth: 'min(20rem, calc(100% - 1.5rem))' }).setDOMContent(popupContent(i));\n\t\t\t\tpopup.on('open', function() {\n\t\t\t\t\t// Focusing the popup scrolls the clipped map container to show it.\n\t\t\t\t\t// Undo that, and when the popup doesn't fit, pan its marker near the\n\t\t\t\t\t// bottom of the map, leaving room above for the popup.\n\t\t\t\t\tcontainer.scrollTop = 0;\n\t\t\t\t\tcontainer.scrollLeft = 0;\n\t\t\t\t\tconst box = popup.getElement().getBoundingClientRect();\n\t\t\t\t\tconst frame = container.getBoundingClientRect();\n\t\t\t\t\tif (box.top >= frame.top && box.bottom <= frame.bottom && box.left >= frame.left && box.right <= frame.right) return;\n\t\t\t\t\tmap.panTo([station.lng, station.lat], { offset: [0, frame.height / 2 - 56] });\n\t\t\t\t});\n\t\t\t\tnew maplibregl.Marker({ element: marker, anchor: 'bottom', offset: [0, -6] })\n\t\t\t\t\t.setLngLat([station.lng, station.lat])\n\t\t\t\t\t.setPopup(popup)\n\t\t\t\t\t.addTo(map);\n\t\t\t}\n\t\t}\n\n\t\t// The popup reuses the station's result card.\n\t\tfunction popupContent(index) {\n\t\t\tconst body = document.getElementById('station-' + index).querySelector('.card-body').cloneNode(true);\n\t\t\tbody.className = 'map-popup';\n\t\t\treturn body;\n\t\t}\n\n\t\t// circle approximates the search radius as a GeoJSON polygon.\n\t\tfunction circle(center, km) {\n\t\t\tconst steps = 96;\n\t\t\tconst latDegrees = km / 110.574;\n\t\t\tconst lngDegrees = km / (111.32 * Math.cos(center[1] * Math.PI / 180));\n\t\t\tconst ring = [];\n\t\t\tfor (let i = 0; i <= steps; i++) {\n\t\t\t\tconst angle = i / steps * 2 * Math.PI;\n\t\t\t\tring.push([center[0] + lngDegrees * Math.cos(angle), center[1] + latDegrees * Math.sin(angle)]);\n\t\t\t}\n\t\t\treturn { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };\n\t\t}\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<script type=\"module\">\n\t\t// Popups open above the price pill rather than over it.\n\t\tconst POPUP_OFFSET = { 'bottom': [0, -32], 'bottom-left': [0, -32], 'bottom-right': [0, -32] };\n\n\t\tconst data = JSON.parse(document.getElementById('results-map-data').textContent);\n\t\tconst text = JSON.parse(document.getElementById('map-text').textContent);\n\t\tconst toggle = document.getElementById('results-map-toggle');\n\t\tconst panel = document.getElementById('results-map');\n\t\tconst container = panel.querySelector('.map-canvas');\n\t\tconst status = panel.querySelector('.map-status');\n\t\tlet loading = null;\n\n\t\ttoggle.addEventListener('click', function() {\n\t\t\tconst open = panel.hidden;\n\t\t\tsetOpen(open);\n\t\t\t// The URL keeps the map's state, so shared links show it too.\n\t\t\tconst url = new URL(location.href);\n\t\t\tif (open) {\n\t\t\t\turl.searchParams.set('map', '1');\n\t\t\t} else {\n\t\t\t\turl.searchParams.delete('map');\n\t\t\t}\n\t\t\thistory.replaceState(history.state, '', url);\n\t\t});\n\t\ttoggle.hidden = false;\n\t\tif (new URLSearchParams(location.search).get('map') === '1') setOpen(true);\n\n\t\tfunction setOpen(open) {\n\t\t\tpanel.hidden = !open;\n\t\t\ttoggle.setAttribute('aria-expanded', String(open));\n\t\t\ttoggle.textContent = open ? text.hide : text.show;\n\t\t\tif (open && !loading) {\n\t\t\t\tloading = showMap().catch(function(error) {\n\t\t\t\t\tconsole.error(error);\n\t\t\t\t\tstatus.textContent = text.unavailable;\n\t\t\t\t\tloading = null; // Try again on the next click.\n\t\t\t\t});\n\t\t\t}\n\t\t}\n\n\t\tfunction loadStylesheet() {\n\t\t\treturn new Promise(function(resolve, reject) {\n\t\t\t\tconst link = document.createElement('link');\n\t\t\t\tlink.rel = 'stylesheet';\n\t\t\t\tlink.href = panel.dataset.stylesheet;\n\t\t\t\tlink.integrity = panel.dataset.stylesheetIntegrity;\n\t\t\t\tlink.crossOrigin = 'anonymous';\n\t\t\t\tlink.onload = resolve;\n\t\t\t\tlink.onerror = function() {\n\t\t\t\t\tlink.remove();\n\t\t\t\t\treject(new Error('Failed to load ' + link.href));\n\t\t\t\t};\n\t\t\t\tdocument.head.append(link);\n\t\t\t});\n\t\t}\n\n\t\tasync function showMap() {\n\t\t\tstatus.textContent = text.loading;\n\t\t\tconst [maplibregl] = await Promise.all([import('maplibre-gl'), loadStylesheet()]);\n\t\t\tconst bounds = new maplibregl.LngLatBounds(data.center, data.center);\n\t\t\tdata.stations.forEach(function(station) { bounds.extend([station.lng, station.lat]); });\n\t\t\tconst map = new maplibregl.Map({\n\t\t\t\tcontainer: container,\n\t\t\t\tstyle: data.style,\n\t\t\t\tbounds: bounds,\n\t\t\t\tfitBoundsOptions: { padding: 48, maxZoom: 15 },\n\t\t\t\tcooperativeGestures: true,\n\t\t\t\tattributionControl: { compact: true },\n\t\t\t\tlocale: text.locale,\n\t\t\t});\n\t\t\tmap.addControl(new maplibregl.NavigationControl({ showCompass: false }));\n\t\t\tlet loaded = false;\n\t\t\tmap.once('load', function() {\n\t\t\t\tloaded = true;\n\t\t\t\tstatus.textContent = '';\n\t\t\t\taddRadius(map);\n\t\t\t});\n\t\t\tmap.on('error', function(event) {\n\t\t\t\tconsole.error(event.error);\n\t\t\t\tif (!loaded) status.textContent = text.unavailable;\n\t\t\t});\n\t\t\taddMarkers(maplibregl, map);\n\t\t}\n\n\t\tfunction addRadius(map) {\n\t\t\t// The container's accent-color resolves --green, which MapLibre can't\n\t\t\t// read as a CSS variable.\n\t\t\tconst color = getComputedStyle(container).accentColor;\n\t\t\tmap.addSource('search-radius', { type: 'geojson', data: circle(data.center, data.radius_km) });\n\t\t\tmap.addLayer({ id: 'search-radius-fill', type: 'fill', source: 'search-radius', paint: { 'fill-color': color, 'fill-opacity': 0.06 } });\n\t\t\tmap.addLayer({ id: 'search-radius-line', type: 'line', source: 'search-radius', paint: { 'line-color': color, 'line-width': 1.5, 'line-dasharray': [3, 2] } });\n\t\t}\n\n\t\tfunction addMarkers(maplibregl, map) {\n\t\t\tconst center = document.createElement('div');\n\t\t\tcenter.className = 'map-center';\n\t\t\tcenter.setAttribute('role', 'img');\n\t\t\tcenter.setAttribute('aria-label', text.search_center);\n\t\t\tcenter.title = text.search_center;\n\t\t\tnew maplibregl.Marker({ element: center }).setLngLat(data.center).addTo(map);\n\n\t\t\tconst prices = data.stations.filter(function(station) { return station.price !== null; }).map(function(station) { return station.price; });\n\t\t\tconst lowest = Math.min.apply(null, prices);\n\t\t\t// Stations come cheapest first; adding them in reverse keeps the cheapest on top.\n\t\t\tfor (let i = data.stations.length - 1; i >= 0; i--) {\n\t\t\t\tconst station = data.stations[i];\n\t\t\t\tconst price = station.price === null ? text.not_available : station.price.toFixed(3) + ' €';\n\t\t\t\tconst marker = document.createElement('div');\n\t\t\t\tmarker.className = 'map-marker';\n\t\t\t\tmarker.classList.toggle('map-marker-lowest', station.price === lowest);\n\t\t\t\tmarker.classList.toggle('map-marker-unpriced', station.price === null);\n\t\t\t\tmarker.setAttribute('role', 'button');\n\t\t\t\tmarker.setAttribute('aria-label', station.name + ': ' + price);\n\t\t\t\tmarker.textContent = price;\n\t\t\t\tconst popup = new maplibregl.Popup({ offset: POPUP_OFFSET, maxWidth: 'min(20rem, calc(100% - 1.5rem))' }).setDOMContent(popupContent(i));\n\t\t\t\tpopup.on('open', function() {\n\t\t\t\t\t// Focusing the popup scrolls the clipped map container to show it.\n\t\t\t\t\t// Undo that, and when the popup doesn't fit, pan its marker near the\n\t\t\t\t\t// bottom of the map, leaving room above for the popup.\n\t\t\t\t\tcontainer.scrollTop = 0;\n\t\t\t\t\tcontainer.scrollLeft = 0;\n\t\t\t\t\tconst box = popup.getElement().getBoundingClientRect();\n\t\t\t\t\tconst frame = container.getBoundingClientRect();\n\t\t\t\t\tif (box.top >= frame.top && box.bottom <= frame.bottom && box.left >= frame.left && box.right <= frame.right) return;\n\t\t\t\t\tmap.panTo([station.lng, station.lat], { offset: [0, frame.height / 2 - 56] });\n\t\t\t\t});\n\t\t\t\tnew maplibregl.Marker({ element: marker, anchor: 'bottom', offset: [0, -6] })\n\t\t\t\t\t.setLngLat([station.lng, station.lat])\n\t\t\t\t\t.setPopup(popup)\n\t\t\t\t\t.addTo(map);\n\t\t\t}\n\t\t}\n\n\t\t// The popup reuses the station's result card.\n\t\tfunction popupContent(index) {\n\t\t\tconst body = document.getElementById('station-' + index).querySelector('.card-body').cloneNode(true);\n\t\t\tbody.className = 'map-popup';\n\t\t\treturn body;\n\t\t}\n\n\t\t// circle approximates the search radius as a GeoJSON polygon.\n\t\tfunction circle(center, km) {\n\t\t\tconst steps = 96;\n\t\t\tconst latDegrees = km / 110.574;\n\t\t\tconst lngDegrees = km / (111.32 * Math.cos(center[1] * Math.PI / 180));\n\t\t\tconst ring = [];\n\t\t\tfor (let i = 0; i <= steps; i++) {\n\t\t\t\tconst angle = i / steps * 2 * Math.PI;\n\t\t\t\tring.push([center[0] + lngDegrees * Math.cos(angle), center[1] + latDegrees * Math.sin(angle)]);\n\t\t\t}\n\t\t\treturn { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };\n\t\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -733,38 +864,38 @@ func StationPrice(label, price, notAvailable string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var42 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var42 == nil {
-			templ_7745c5c3_Var42 = templ.NopComponent
+		templ_7745c5c3_Var49 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var49 == nil {
+			templ_7745c5c3_Var49 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<div class=\"station-price\"><dt>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<div class=\"station-price\"><dt>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var43 string
-		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(strings.TrimSuffix(label, ":"))
+		var templ_7745c5c3_Var50 string
+		templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(strings.TrimSuffix(label, ":"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 293, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 300, Col: 38}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</dt><dd>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var44 string
-		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(formatPrice(price, notAvailable))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 294, Col: 40}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</dt><dd>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</dd></div>")
+		var templ_7745c5c3_Var51 string
+		templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(formatPrice(price, notAvailable))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `results.templ`, Line: 301, Col: 40}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</dd></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

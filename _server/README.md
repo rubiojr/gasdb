@@ -7,6 +7,7 @@ A web-based interface for finding nearby fuel stations in Spain with current pri
 - 🌐 Clean web interface for searching fuel stations
 - 📍 Location-based search (address or coordinates)
 - 🧭 Geolocation support for finding nearby stations
+- 🔗 Shareable station pages (`/station/<id>`) with prices, opening hours and a map
 - 📊 Real-time fuel price data from Spanish government API
 - 🔄 Automatic price updates (4 times daily)
 - ⚡ In-memory caching for geocoding results
